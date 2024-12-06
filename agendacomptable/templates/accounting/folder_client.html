@@ -1,0 +1,1029 @@
+{% extends 'accounting/base.html' %}
+{% load static %}
+
+<title>{% block title %}Ajouter un Dossier Client{% endblock %}</title>
+
+{% block content %}
+
+<div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            {% if message %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+                <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                    {% if message.tags == 'success' %} bg-success
+                    {% elif message.tags == 'danger' %} bg-danger
+                    {% elif message.tags == 'warning' %} bg-warning
+                    {% elif message.tags == 'info' %} bg-purple
+                    {% else %} bg-secondary {% endif %} 
+                    rounded-circle mx-auto me-1">
+                    <i class="fas 
+                        {% if message.tags == 'success' %} fa-check
+                        {% elif message.tags == 'danger' %} fa-xmark
+                        {% elif message.tags == 'warning' %} fa-exclamation
+                        {% elif message.tags == 'info' %} fa-info
+                        {% else %} fa-info {% endif %}
+                        align-self-center mb-0 text-white"></i>
+                </div>
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    <div class="card">
+        <div class="card-header text-center">
+            <h3>Ajouter un Nouveau Dossier Client</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab">
+                        <a class="nav-link py-2 active" id="step1-tab" data-bs-toggle="tab" href="#step1">Informations Générales</a>
+                        <a class="nav-link py-2" id="step2-tab" data-bs-toggle="tab" href="#step2">Contact</a>
+                        <a class="nav-link py-2" id="step3-tab" data-bs-toggle="tab" href="#step3">Fiscales & Juridiques</a>
+                        <a class="nav-link py-2" id="step4-tab" data-bs-toggle="tab" href="#step4">Options</a>
+                        <a class="nav-link py-2" id="step5-tab" data-bs-toggle="tab" href="#step5">Associés</a>
+                        <a class="nav-link py-2" id="step6-tab" data-bs-toggle="tab" href="#step6">E-Documents</a>
+                        <a class="nav-link py-2" id="step7-tab" data-bs-toggle="tab" href="#step7">Gestion des contrats</a>
+                    </div>
+                </nav>
+
+                <div class="tab-content" id="nav-tabContent">
+                    <!-- Step 1: General Information -->
+                    <div class="tab-pane active" id="step1">
+                        <h5 class="my-4">Informations Générales du Client</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="raison_sociale" class="form-label">Raison Sociale</label>
+                                <input type="text" class="form-control" id="raison_sociale" name="raison_sociale" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date_creation" class="form-label">Date de Création</label>
+                                <input type="date" class="form-control" id="date_creation" name="date_creation" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="adresse" class="form-label">Adresse</label>
+                                <input type="text" class="form-control" id="adresse" name="adresse" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ville" class="form-label">Ville</label>
+                                <input type="text" class="form-control" id="ville" name="ville" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="activite" class="form-label">Activité</label>
+                                <input class="form-control" id="activite" name="activite" required/>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="email" class="form-label">E-Mail</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                        <button type="button" id="step1Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+
+                    <!-- Step 2: Contact Information -->
+                    <div class="tab-pane" id="step2">
+                        <h5 class="my-4">Informations de Contact</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="personne_1" class="form-label">Personne 1</label>
+                                <input type="text" class="form-control" id="personne_1" name="personne_1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="personne_2" class="form-label">Personne 2</label>
+                                <input type="text" class="form-control" id="personne_2" name="personne_2">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="telephone" class="form-label">Téléphone</label>
+                                <input type="text" class="form-control" id="telephone" name="telephone">
+                            </div>
+                        </div>
+                        <button type="button" id="step2Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step2Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+
+                    <!-- Step 3: Fiscal and Legal Information -->
+                    <div class="tab-pane" id="step3">
+                        <h5 class="my-4">Informations Fiscales et Juridiques</h5>
+
+                        <!-- IF, ICE, Registre Commerce, CNSS -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="identifiant_fiscal" class="form-label">IF</label>
+                                <input type="text" class="form-control" id="identifiant_fiscal" name="identifiant_fiscal">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="ice" class="form-label">ICE</label>
+                                <input type="text" class="form-control" id="ice" name="ice">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="registre_commerce" class="form-label">Registre Commerce</label>
+                                <input type="text" class="form-control" id="registre_commerce" name="registre_commerce">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="cnss" class="form-label">CNSS</label>
+                                <input type="text" class="form-control" id="cnss" name="cnss">
+                            </div>
+                        </div>
+
+                        <!-- Forme Juridique Section -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="forme_juridique" class="form-label">Forme Juridique</label>
+                                <select class="form-select" id="forme_juridique" name="forme_juridique" required>
+                                    <option value="">Sélectionner une option</option>
+                                    {% for forme in formes_juridiques %}
+                                        <option value="{{ forme.id }}">{{ forme.libelle }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Section to Add Fiscal Services -->
+                        <div id="fiscal_services_container">
+                            <h5 class="mt-4">REGIME D'IMPOSITION</h5>
+                            <div id="fiscal_services_list">
+                                <!-- Added services will appear here -->
+                            </div>
+                            <button type="button" id="add_service" class="btn btn-primary mt-3">
+                                <i class="las la-plus"></i> Ajouter un Régime
+                            </button>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" id="step3Prev" class="btn btn-secondary">
+                                <i class="las la-arrow-left"></i> Précédent
+                            </button>
+                            <button type="button" id="step3Next" class="btn btn-primary">
+                                Suivant <i class="las la-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <script>
+                        // قائمة لتتبع الخيارات المضافة حاليًا
+                        const selectedServices = new Set();
+                    
+                        document.getElementById('add_service').addEventListener('click', function () {
+                            // Container where new service will be added
+                            const servicesList = document.getElementById('fiscal_services_list');
+                    
+                            // Create a new service form group
+                            const newService = document.createElement('div');
+                            newService.className = 'mb-3 border p-3 rounded';
+                            newService.innerHTML = `
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="service_type" class="form-label">Type de Service</label>
+                                        <select class="form-select service_type" name="service_type[]" required>
+                                            <option value="">Sélectionner une option</option>
+                                            ${generateOptions()}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="service_option" class="form-label">Option</label>
+                                        <select class="form-select service_option" name="service_option[]" required>
+                                            <option value="">Sélectionner une option</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Action</label>
+                                        <button type="button" class="btn btn-danger w-100 remove_service">Supprimer</button>
+                                    </div>
+                                </div>
+                                <div class="row mt-3 tva_period_row" style="display: none;">
+                                    <div class="col-md-4">
+                                        <label for="tva_period" class="form-label">Période (TVA)</label>
+                                        <select class="form-select tva_period" name="tva_period[]">
+                                            <option value="">Sélectionner une option</option>
+                                            <option value="Mensuelle">Mensuelle</option>
+                                            <option value="Trimestrielle">Trimestrielle</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            `;
+                    
+                            // Append new service to the list
+                            servicesList.appendChild(newService);
+                    
+                            // Add event listener to the remove button
+                            newService.querySelector('.remove_service').addEventListener('click', function () {
+                                const selectedService = newService.querySelector('.service_type').value;
+                                if (selectedService) {
+                                    selectedServices.delete(selectedService); // Remove from selected services
+                                }
+                                newService.remove();
+                            });
+                    
+                            // Handle service type change dynamically
+                            const serviceType = newService.querySelector('.service_type');
+                            const serviceOption = newService.querySelector('.service_option');
+                            const tvaPeriodRow = newService.querySelector('.tva_period_row');
+                    
+                            serviceType.addEventListener('change', function () {
+                                // إذا كان هناك خيار جديد مختار، أضفه إلى المجموعة وتحديث الخيارات
+                                if (this.value) {
+                                    selectedServices.add(this.value);
+                                }
+                    
+                                serviceOption.innerHTML = ''; // Clear previous options
+                                tvaPeriodRow.style.display = 'none'; // Hide TVA period by default
+                    
+                                if (this.value === 'TVA') {
+                                    serviceOption.innerHTML = `
+                                        <option value="">Sélectionner une option</option>
+                                        <option value="De plein droit">De plein droit</option>
+                                        <option value="Sur option">Sur option</option>
+                                        <option value="Hors champ">Hors champ</option>
+                                        <option value="Exonéré sans droit à déduction">Exonéré sans droit à déduction</option>
+                                        <option value="Exonéré avec droit à déduction">Exonéré avec droit à déduction</option>
+                                    `;
+                                    tvaPeriodRow.style.display = 'block'; // Show TVA period
+                                } else if (this.value === 'IR') {
+                                    serviceOption.innerHTML = `
+                                        <option value="">Sélectionner une option</option>
+                                        <option value="Résultat net réel">Résultat net réel</option>
+                                        <option value="Résultat net simplifié">Résultat net simplifié</option>
+                                        <option value="Contribution professionnelle unique">Contribution professionnelle unique</option>
+                                    `;
+                                } else if (this.value === 'IS') {
+                                    serviceOption.innerHTML = `
+                                        <option value="">Sélectionner une option</option>
+                                        <option value="De plein droit">De plein droit</option>
+                                        <option value="Sur option">Sur option</option>
+                                        <option value="Option pour l'imposition forfaitaire">Option pour l'imposition forfaitaire</option>
+                                    `;
+                                }
+                            });
+                        });
+                    
+                        // وظيفة لتوليد الخيارات بناءً على الخيارات غير المحددة
+                        function generateOptions() {
+                            const allOptions = ['TVA', 'IR', 'IS'];
+                            return allOptions
+                                .filter(option => !selectedServices.has(option))
+                                .map(option => `<option value="${option}">${option}</option>`)
+                                .join('');
+                        }
+                    </script>                    
+                    
+                                        
+                    
+                    <!-- Step 4: Options -->
+                    <div class="tab-pane" id="step4">
+                        <h5 class="my-4">Options de Domiciliation et Comptabilité</h5>
+                        <div class="row mb-4">
+                            <!-- Domiciliation -->
+                            <div class="col-md-6">
+                                <label for="domiciliation" class="form-label">Domiciliation</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="domiciliation" name="domiciliation" onchange="toggleDomiciliation()">
+                                    <label class="form-check-label" for="domiciliation">Activer la domiciliation</label>
+                                </div>
+                            </div>
+                            <!-- Tenue Comptabilité -->
+                            <div class="col-md-6">
+                                <label for="tenue_comptabilite" class="form-label">Tenue Comptabilité</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="tenue_comptabilite" name="tenue_comptabilite" onchange="toggleTenueComptabilite()">
+                                    <label class="form-check-label" for="tenue_comptabilite">Activer la tenue comptabilité</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <!-- Cabinet Comptable -->
+                            <div class="col-md-6" id="cabinetComptableField">
+                                <label for="cabinet_comptable" class="form-label">Cabinet Comptable</label>
+                                <select class="form-control" id="cabinet_comptable" name="cabinet_comptable">
+                                    <option value="">Sélectionner</option>
+                                    {% for comptable in comptables %}
+                                        <option value="{{ comptable.id }}">{{ comptable.lib_08 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Ajouter un Service -->
+                            <div class="col-md-6" id="addServiceField" style="display: none; margin-top: 25px;">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#servicesModal">Ajouter un Service</button>
+                            </div>
+                            <!-- Date Réception Dossier -->
+                            <div class="col-md-6">
+                                <label for="date_reception_dossier" class="form-label">Date Réception Dossier</label>
+                                <input type="date" class="form-control" id="date_reception_dossier" name="date_reception_dossier" required>
+                            </div>
+                        </div>
+                    
+                        <!-- Services Section -->
+                        <div id="servicesSection" style="display: none;">
+                            <h5 class="mt-4">Services Ajoutés</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="addedServicesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th>Prix</th>
+                                            <th>Date Début</th>
+                                            <th>Date Fin</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="addedServicesContainer"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    
+                        <button type="button" id="step4Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step4Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+                    
+
+                    <!-- Modal for Adding Services -->
+                    <div class="modal fade" id="servicesModal" tabindex="-1" aria-labelledby="servicesModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="servicesModalLabel">Ajouter un Service</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="service" class="form-label">Service</label>
+                                            <select class="form-control" id="service" name="service">
+                                                <option value="">Sélectionner</option>
+                                                {% for service in services %}
+                                                    {% if service.libelle != "Domiciliation" %}
+                                                        <option value="{{ service.id }}" data-prix="{{ service.prix }}">{{ service.libelle }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>                                                                                     
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="prix" class="form-label">Prix</label>
+                                            <input type="number" class="form-control" id="prix" name="prix" value="" step="0.01" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="date_debut" class="form-label">Date Début</label>
+                                            <input type="date" class="form-control" id="date_debut" name="date_debut">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="date_fin" class="form-label">Date Fin</label>
+                                            <input type="date" class="form-control" id="date_fin" name="date_fin">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="button" class="btn btn-primary" onclick="addService()">Ajouter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        document.getElementById('service').addEventListener('change', function() {
+                            var selectedOption = this.options[this.selectedIndex];
+                            var prix = selectedOption.getAttribute('data-prix');
+                            document.getElementById('prix').value = prix;
+                        });
+                    </script>
+
+                    
+                    <script>
+                        document.getElementById('service').addEventListener('change', function () {
+                            const selectedOption = this.options[this.selectedIndex];
+                            const prix = selectedOption.getAttribute('data-prix') || "0.00";
+                            document.getElementById('prix').value = prix;
+                        });
+                        
+                        function addService() {
+                            const service = document.getElementById('service').value;
+                            const serviceName = document.getElementById('service').options[document.getElementById('service').selectedIndex].text;
+                            const prix = document.getElementById('prix').value;
+                            const dateDebut = document.getElementById('date_debut').value;
+                            const dateFin = document.getElementById('date_fin').value;
+                        
+                            if (!service || !prix || !dateDebut || !dateFin) {
+                                alert("Veuillez remplir tous les champs avant d'ajouter un service.");
+                                return;
+                            }
+                        
+                            const addedServicesContainer = document.getElementById('addedServicesContainer');
+                            const serviceRow = `
+                                <tr>
+                                    <td><input type="hidden" name="service_id[]" value="${service}">${serviceName}</td>
+                                    <td><input type="hidden" name="service_prix[]" value="${prix}">${prix}</td>
+                                    <td><input type="hidden" name="service_date_debut[]" value="${dateDebut}">${dateDebut}</td>
+                                    <td><input type="hidden" name="service_date_fin[]" value="${dateFin}">${dateFin}</td>
+                                    <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Supprimer</button></td>
+                                </tr>`;
+                            addedServicesContainer.insertAdjacentHTML('beforeend', serviceRow);
+                        
+                            // Reset modal fields
+                            document.getElementById('service').value = '';
+                            document.getElementById('prix').value = '';
+                            document.getElementById('date_debut').value = '';
+                            document.getElementById('date_fin').value = '';
+                            bootstrap.Modal.getInstance(document.getElementById('servicesModal')).hide();
+                        }
+                        
+                        
+                        function toggleTenueComptabilite() {
+                            const tenueComptabilite = document.getElementById('tenue_comptabilite').checked;
+                            const cabinetComptableField = document.getElementById('cabinetComptableField');
+                            const addServiceField = document.getElementById('addServiceField');
+                            const servicesSection = document.getElementById('servicesSection');
+                        
+                            if (tenueComptabilite) {
+                                cabinetComptableField.style.display = 'none';
+                                addServiceField.style.display = 'block';
+                                servicesSection.style.display = 'block';
+                            } else {
+                                cabinetComptableField.style.display = 'block';
+                                addServiceField.style.display = 'none';
+                        
+                                const addedServicesContainer = document.getElementById('addedServicesContainer');
+                                if (!addedServicesContainer.hasChildNodes()) {
+                                    servicesSection.style.display = 'none';
+                                }
+                            }
+                        }
+                        
+                        function toggleDomiciliation() {
+                            const domiciliation = document.getElementById('domiciliation').checked;
+                            const servicesSection = document.getElementById('servicesSection');
+                            const addedServicesContainer = document.getElementById('addedServicesContainer');
+                        
+                            if (domiciliation) {
+                                servicesSection.style.display = 'block';
+                                if (!document.getElementById('domiciliationRow')) {
+                                    const today = new Date().toISOString().split('T')[0];
+                                    const domiciliationRow = `
+                                        <tr id="domiciliationRow">
+                                            <td><input type="hidden" name="domiciliation_id" value="domiciliation">Domiciliation</td>
+                                            <td><input type="number" class="form-control" name="domiciliation_prix" value="0.00" step="0.01"></td>
+                                            <td><input type="date" class="form-control" name="domiciliation_date_debut" value="${today}"></td>
+                                            <td><input type="date" class="form-control" name="domiciliation_date_fin"></td>
+                                            <td><button type="button" class="btn btn-danger btn-sm" onclick="removeDomiciliation()">Supprimer</button></td>
+                                        </tr>`;
+                                    addedServicesContainer.insertAdjacentHTML('beforeend', domiciliationRow);
+                                }
+                            } else {
+                                removeDomiciliation();
+                            }
+                        }
+                        
+                        function removeDomiciliation() {
+                            const row = document.getElementById('domiciliationRow');
+                            if (row) row.remove();
+                        }
+                        
+                        
+                        function removeDomiciliation() {
+                            const row = document.getElementById('domiciliationRow');
+                            if (row) row.remove();
+                        }                                            
+                    </script>
+    
+                    <!-- Step 5: Associés -->
+                    <div class="tab-pane" id="step5">
+                        <h5 class="my-4">Associés</h5>
+
+                        <!-- Ajouter un Associé -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#associeModal">Ajouter un Associé</button>
+                            </div>
+                        </div>
+
+                        <!-- Table for added associés -->
+                        <div id="associesSection">
+                            <h5 class="mt-4">Associés Ajoutés</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="addedAssociesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Prénom</th>
+                                            <th>CIN</th>
+                                            <th>Parts Sociales</th>
+                                            <th>Montant</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="addedAssociesContainer"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Modal for Adding Associé -->
+                        <div class="modal fade" id="associeModal" tabindex="-1" aria-labelledby="associeModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="associeModalLabel">Ajouter un Associé</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_nom" class="form-label">Nom</label>
+                                                <input type="text" class="form-control" id="associe_nom" name="associe_nom">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_prenom" class="form-label">Prénom</label>
+                                                <input type="text" class="form-control" id="associe_prenom" name="associe_prenom">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_datn" class="form-label">Date de Naissance</label>
+                                                <input type="date" class="form-control" id="associe_datn" name="associe_datn">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_cine" class="form-label">CIN</label>
+                                                <input type="text" class="form-control" id="associe_cine" name="associe_cine">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <label for="associe_adresse" class="form-label">Adresse</label>
+                                                <input type="text" class="form-control" id="associe_adresse" name="associe_adresse">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_profession" class="form-label">Profession</label>
+                                                <input type="text" class="form-control" id="associe_profession" name="associe_profession">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_qualite" class="form-label">Qualité</label>
+                                                <select class="form-control" id="associe_qualite" name="associe_qualite">
+                                                    <option value="">Sélectionner</option>
+                                                    {% for qualite in qualites %}
+                                                        <option value="{{ qualite.id }}">{{ qualite.libelle }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_parts" class="form-label">Parts Sociales</label>
+                                                <input type="number" class="form-control" id="associe_parts" name="associe_parts">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_montant" class="form-label">Montant</label>
+                                                <input type="number" class="form-control" id="associe_montant" name="associe_montant" step="0.01">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="button" class="btn btn-primary" onclick="addAssocie()">Ajouter</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="step5Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step5Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+
+                    <script>
+                        function addAssocie() {
+                            const nom = document.getElementById('associe_nom').value;
+                            const prenom = document.getElementById('associe_prenom').value;
+                            const datn = document.getElementById('associe_datn').value; // تاريخ الميلاد
+                            const cine = document.getElementById('associe_cine').value; // CIN
+                            const adresse = document.getElementById('associe_adresse').value; // العنوان
+                            const profession = document.getElementById('associe_profession').value; // الوظيفة
+                            const parts = document.getElementById('associe_parts').value;
+                            const montant = document.getElementById('associe_montant').value;
+                        
+                            // تحقق من الحقول المطلوبة
+                            if (!nom || !prenom || !parts || !montant) {
+                                alert("Veuillez remplir tous les champs obligatoires.");
+                                return;
+                            }
+                        
+                            // أضف الصف الجديد إلى الجدول
+                            const addedAssociesContainer = document.getElementById('addedAssociesContainer');
+                            const associeRow = `
+                                <tr>
+                                    <td><input type="text" class="form-control form-control-sm" name="associe_nom[]" value="${nom}" readonly></td>
+                                    <td><input type="text" class="form-control form-control-sm" name="associe_prenom[]" value="${prenom}" readonly></td>
+                                    <td><input type="text" class="form-control form-control-sm" name="associe_cine[]" value="${cine}" readonly></td>
+                                    <td><input type="number" class="form-control form-control-sm" name="associe_parts[]" value="${parts}" readonly></td>
+                                    <td><input type="number" class="form-control form-control-sm" name="associe_montant[]" value="${montant}" readonly></td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Supprimer</button>
+                                    </td>
+                                </tr>
+                            `;
+
+                            addedAssociesContainer.insertAdjacentHTML('beforeend', associeRow);
+                        
+                            // مسح الحقول بعد الإضافة
+                            document.getElementById('associe_nom').value = '';
+                            document.getElementById('associe_prenom').value = '';
+                            document.getElementById('associe_datn').value = '';
+                            document.getElementById('associe_cine').value = '';
+                            document.getElementById('associe_adresse').value = '';
+                            document.getElementById('associe_profession').value = '';
+                            document.getElementById('associe_parts').value = '';
+                            document.getElementById('associe_montant').value = '';
+                        
+                            // إغلاق المودال
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('associeModal'));
+                            modal.hide();
+                        }                                             
+                    </script>
+
+
+                    <!-- Step 6: E-Documents -->
+                    <div class="tab-pane" id="step6">
+                        <h5 class="my-4">E-Documents</h5>
+
+                        <!-- زر لإظهار المودال -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#documentModal">Ajouter un Document</button>
+                            </div>
+                        </div>
+
+                        <!-- جدول عرض الملفات المرفوعة -->
+                        <div id="documentSection">
+                            <h5 class="mt-4">Documents Ajoutés</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="addedDocumentsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom du Fichier</th>
+                                            <th>Type</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="addedDocumentsContainer">
+                                        {% for document in documents %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ document.file.url }}" target="_blank">{{ document.file.name }}</a>
+                                                <input type="hidden" name="existing_document_ids[]" value="{{ document.id }}">
+                                            </td>
+                                            <td>{{ document.file.name|slice:"-3:" }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeExistingDocument(this, {{ document.id }})">Supprimer</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- المودال لإضافة ملفات جديدة -->
+                        <div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="documentModalLabel">Ajouter un Document</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <label for="document_file" class="form-label">Fichiers</label>
+                                                <input type="file" class="form-control" id="document_file" name="document_file[]" multiple>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="button" class="btn btn-primary" id="addDocumentButton" data-bs-dismiss="modal">Ajouter</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="step6Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step6Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                                                
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function () {
+                                const addDocumentButton = document.getElementById("addDocumentButton");
+                                const fileInput = document.getElementById("document_file");
+                                const addedDocumentsContainer = document.getElementById("addedDocumentsContainer");
+
+                                addDocumentButton.addEventListener("click", function () {
+                                    const files = fileInput.files;
+
+                                    if (files.length === 0) {
+                                        alert("Veuillez sélectionner au moins un fichier.");
+                                        return;
+                                    }
+
+                                    for (let i = 0; i < files.length; i++) {
+                                        const file = files[i];
+                                        const fileName = file.name;
+                                        const fileType = file.type.split("/")[1] || "Unknown";
+
+                                        const row = `
+                                            <tr>
+                                                <td>${fileName}<input type="hidden" name="new_document_files[]" value="${fileName}"></td>
+                                                <td>${fileType}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeDocument(this)">Supprimer</button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                        addedDocumentsContainer.insertAdjacentHTML("beforeend", row);
+                                    }
+
+                                    // لا نقوم بإعادة تعيين محتوى الحقل input لضمان إرسال الملفات الجديدة
+                                });
+
+                                window.removeDocument = function (button) {
+                                    const row = button.closest("tr");
+                                    row.remove();
+                                };
+
+                                window.removeExistingDocument = function (button, documentId) {
+                                    const row = button.closest("tr");
+                                    row.remove();
+                                    const hiddenInput = `<input type="hidden" name="removed_document_ids[]" value="${documentId}">`;
+                                    addedDocumentsContainer.insertAdjacentHTML("beforeend", hiddenInput);
+                                };
+                            });
+                        </script>
+
+                    </div>
+
+                    <!-- Step 7: Gestion des Contrats -->
+
+                    <div class="tab-pane" id="step7">
+                        <h5 class="my-4">Gestion des Contrats</h5>
+                    
+                        <!-- Choix du type de contrat -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="type_contrat" class="form-label">Type de Contrat</label>
+                                <select class="form-control" id="type_contrat" name="type_contrat" onchange="toggleContratFields()">
+                                    <option value="">Sélectionner</option>
+                                    <option value="personne_physique">Personne Physique</option>
+                                    <option value="personne_morale">Personne Morale</option>
+                                </select>
+                            </div>
+                        </div>
+                    
+                        <!-- Formulaire Personne Physique -->
+                        <div id="formPersonnePhysique" style="display: block;font-family: cairo;" dir="rtl">
+                                <!-- رقم العقد 
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="id_contrat_physique" class="form-label">رقم العقد</label>
+                                        <input type="text" class="form-control" id="id_contrat_physique" name="id_contrat_physique" value="{{ contrat.id_contrat|default:'' }}" readonly>
+                                    </div>
+                                </div>
+                                -->
+                    
+                                <!-- الاسم وتاريخ العقد -->
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label for="nom_prenom" class="form-label">الاسم الكامل</label>
+                                        <input type="text" class="form-control" id="nom_prenom" name="nom_prenom" value="{{ contrat.nom_prenom|default:'' }}" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="date_contrat_physique" class="form-label">تاريخ العقد</label>
+                                        <input type="date" class="form-control" id="date_contrat_physique" name="date_contrat_physique" value="{{ contrat.date_contrat|date:'Y-m-d'|default:'' }}" required>
+                                    </div>
+                                </div>
+                    
+                                <!-- الإيجار الشهري -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="loyer_mensuel_contrat_physique" class="form-label">الإيجار الشهري (العقد)</label>
+                                        <input type="number" class="form-control" id="loyer_mensuel_contrat_physique" name="loyer_mensuel_contrat_physique" value="{{ contrat.loyer_mensuel_contrat|default:'' }}" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="loyer_mensuel_plateforme_physique" class="form-label">الإيجار الشهري (المنصة)</label>
+                                        <input type="number" class="form-control" id="loyer_mensuel_plateforme_physique" name="loyer_mensuel_plateforme_physique" value="{{ contrat.loyer_mensuel_plateforme|default:'' }}" step="0.01" required>
+                                    </div>
+                                </div>
+                    
+                                <!-- التواريخ -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="date_debut_physique" class="form-label">تاريخ البداية</label>
+                                        <input type="date" class="form-control" id="date_debut_physique" name="date_debut_physique" value="{{ contrat.date_debut|date:'Y-m-d'|default:'' }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="date_fin_physique" class="form-label">تاريخ النهاية</label>
+                                        <input type="date" class="form-control" id="date_fin_physique" name="date_fin_physique" value="{{ contrat.date_fin|date:'Y-m-d'|default:'' }}" required>
+                                    </div>
+                                </div>
+                    
+                                <!-- معلومات الميلاد -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="date_naissance_physique" class="form-label">تاريخ الميلاد</label>
+                                        <input type="date" class="form-control" id="date_naissance_physique" name="date_naissance_physique" value="{{ contrat.date_naissance|date:'Y-m-d'|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lieu_naissance_physique" class="form-label">مكان الميلاد</label>
+                                        <input type="text" class="form-control" id="lieu_naissance_physique" name="lieu_naissance_physique" value="{{ contrat.lieu_naissance|default:'' }}">
+                                    </div>
+                                </div>
+                    
+                                <!-- بيانات الأب والأم -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="nom_pere_physique" class="form-label">اسم الأب</label>
+                                        <input type="text" class="form-control" id="nom_pere_physique" name="nom_pere_physique" value="{{ contrat.nom_pere|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="nom_mere_physique" class="form-label">اسم الأم</label>
+                                        <input type="text" class="form-control" id="nom_mere_physique" name="nom_mere_physique" value="{{ contrat.nom_mere|default:'' }}">
+                                    </div>
+                                </div>
+                    
+                                <!-- بيانات العنوان والشروط -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="adresse_physique" class="form-label">العنوان</label>
+                                        <textarea class="form-control" id="adresse_physique" name="adresse_physique" rows="1">{{ contrat.adresse|default:'' }}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="conditions_physique" class="form-label">الشروط</label>
+                                        <textarea class="form-control" id="conditions_physique" name="conditions_physique" rows="1">{{ contrat.conditions|default:'' }}</textarea>
+                                    </div>
+                                </div>
+                    
+                                <!-- المهنة -->
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label for="profession_physique" class="form-label">الصفة و المهنة</label>
+                                        <input type="text" class="form-control" id="profession_physique" name="profession_physique" value="{{ contrat.profession|default:'' }}">
+                                    </div>
+                                </div>
+                           
+                        </div>
+                    
+                        <!-- Formulaire Personne Morale -->
+                        <div id="formPersonneMorale" style="display: block;font-family: cairo;" dir="rtl">
+                            
+                                <!-- الحقول العليا -->
+                                <div class="row mb-3">
+                                    <!--
+                                    <div class="col-md-4">
+                                        <label for="id_contrat" class="form-label">رقم العقد</label>
+                                        <input type="text" class="form-control" id="id_contrat" name="id_contrat" value="{{ contrat.id_contrat|default:'' }}" readonly>
+                                    </div>
+                                    -->
+                                    <div class="col-md-6">
+                                        <label for="date_contrat" class="form-label">تاريخ العقد</label>
+                                        <input type="date" class="form-control" id="date_contrat" name="date_contrat" value="{{ contrat.date_contrat|date:'Y-m-d'|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="conditions" class="form-label">الشروط</label>
+                                        <input type="text" class="form-control" id="conditions" name="conditions" value="{{ contrat.conditions|default:'' }}">
+                                    </div>
+                                </div>
+                            
+                                <!-- الإيجار الشهري -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="loyer_mensuel_contrat_morale" class="form-label">الإيجار الشهري (العقد)</label>
+                                        <input type="number" class="form-control" id="loyer_mensuel_contrat_morale" name="loyer_mensuel_contrat_morale" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="loyer_mensuel_plateforme_morale" class="form-label">الإيجار الشهري (المنصة)</label>
+                                        <input type="number" class="form-control" id="loyer_mensuel_plateforme_morale" name="loyer_mensuel_plateforme_morale" step="0.01" required>
+                                    </div>
+                                </div>
+                            
+                                <!-- الحقول الخاصة بالتواريخ -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="date_debut" class="form-label">تاريخ البداية</label>
+                                        <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ contrat.date_debut|date:'Y-m-d'|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="date_fin" class="form-label">تاريخ النهاية</label>
+                                        <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ contrat.date_fin|date:'Y-m-d'|default:'' }}">
+                                    </div>
+                                </div>
+                            
+                                <!-- بيانات الممثل القانوني -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="nom_representant" class="form-label">اسم الممثل القانوني (الكامل)</label>
+                                        <input type="text" class="form-control" id="nom_representant" name="nom_representant">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="cin_representant" class="form-label">رقم بطاقة التعريف الوطنية</label>
+                                        <input type="text" class="form-control" id="cin_representant" name="cin_representant">
+                                    </div>
+                                </div>
+                            
+                                <!-- معلومات الميلاد -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="date_naissance_representant" class="form-label">تاريخ الميلاد</label>
+                                        <input type="date" class="form-control" id="date_naissance_representant" name="date_naissance_representant" value="{{ contrat.date_naissance_representant|date:'Y-m-d'|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lieu_naissance_representant" class="form-label">مكان الميلاد</label>
+                                        <input type="text" class="form-control" id="lieu_naissance_representant" name="lieu_naissance_representant" value="{{ contrat.lieu_naissance_representant|default:'' }}">
+                                    </div>
+                                </div>
+                            
+                                <!-- معلومات الوالدين -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="nom_pere_representant" class="form-label">اسم الأب</label>
+                                        <input type="text" class="form-control" id="nom_pere_representant" name="nom_pere_representant" value="{{ contrat.nom_pere_representant|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="nom_mere_representant" class="form-label">اسم الأم</label>
+                                        <input type="text" class="form-control" id="nom_mere_representant" name="nom_mere_representant" value="{{ contrat.nom_mere_representant|default:'' }}">
+                                    </div>
+                                </div>
+                            
+                                <!-- الحقول الإضافية -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="profession" class="form-label">الصفة</label>
+                                        <input type="text" class="form-control" id="profession" name="profession" value="{{ contrat.profession|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="fonction" class="form-label">المهنة</label>
+                                        <input type="text" class="form-control" id="fonction" name="fonction" value="{{ contrat.fonction|default:'' }}">
+                                    </div>
+                                </div>
+                            
+                        </div>
+                        
+                    
+                        <!-- أزرار التنقل -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" id="step7Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                            <button type="submit" class="btn btn-success float-end mt-3">Enregistrer</button>
+                        </div>
+                    
+                        <script>
+                            function toggleContratFields() {
+                                const typeContrat = document.getElementById("type_contrat").value;
+                                const formPhysique = document.getElementById("formPersonnePhysique");
+                                const formMorale = document.getElementById("formPersonneMorale");
+
+                                if (typeContrat === "personne_physique") {
+                                    formPhysique.style.display = "block";
+                                    formMorale.style.display = "none";
+                                    toggleRequiredFields(formPhysique, true);
+                                    toggleRequiredFields(formMorale, false);
+                                } else if (typeContrat === "personne_morale") {
+                                    formPhysique.style.display = "none";
+                                    formMorale.style.display = "block";
+                                    toggleRequiredFields(formPhysique, false);
+                                    toggleRequiredFields(formMorale, true);
+                                } else {
+                                    formPhysique.style.display = "none";
+                                    formMorale.style.display = "none";
+                                    toggleRequiredFields(formPhysique, false);
+                                    toggleRequiredFields(formMorale, false);
+                                }
+                            }
+                            
+                            function toggleRequiredFields(form, isRequired) {
+                                const inputs = form.querySelectorAll("input, textarea, select");
+                                inputs.forEach((input) => {
+                                    if (isRequired) {
+                                        input.setAttribute("required", "required");
+                                    } else {
+                                        input.removeAttribute("required");
+                                    }
+                                });
+                            }
+                            
+                            document.addEventListener("DOMContentLoaded", () => {
+                                toggleContratFields();
+                            });
+                            
+                        </script>
+                    </div>
+
+                    
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends 'accounting/base.html' %}
+{% load static %}
+<title>{% block title %}Liste des Types de Règlements{% endblock %}</title>
+
+
+{% block content %}
+<div class="container-xxl"> 
+    <div class="row">
+        <div class="col-12">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+                    <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                        {% if message.tags == 'success' %} bg-success
+                        {% elif message.tags == 'danger' %} bg-danger
+                        {% elif message.tags == 'warning' %} bg-warning
+                        {% elif message.tags == 'info' %} bg-purple
+                        {% else %} bg-secondary {% endif %} 
+                        rounded-circle mx-auto me-1">
+                        <i class="fas 
+                            {% if message.tags == 'success' %} fa-check
+                            {% elif message.tags == 'danger' %} fa-xmark
+                            {% elif message.tags == 'warning' %} fa-exclamation
+                            {% elif message.tags == 'info' %} fa-info
+                            {% else %} fa-info {% endif %}
+                            align-self-center mb-0 text-white"></i>
+                    </div>
+                    {{ message|safe }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">                      
+                            <h4 class="card-title">Liste des Types de Règlements</h4>       
+                        </div>
+                        <div class="d-flex align-items-center justify-content-end mb-3">
+                            <button type="button" class="btn btn-primary me-3" data-bs-toggle="modal" data-bs-target="#addModal">
+                                <i class="fas fa-plus me-1"></i> Ajouter un nouveau type de règlement
+                            </button>
+                            <div class="text-end">
+                                <select id="filter_status" onchange="if (this.value) location = this.value;" class="form-select" style="width: auto;">
+                                    <option value="?filter=all" {% if filter_status == 'all' %}selected{% endif %} disabled>Filtrer par état:</option>
+                                    <option value="?" {% if filter_status == '' %}selected{% endif %}>Tous</option>
+                                    <option value="?filter=active" {% if filter_status == 'active' %}selected{% endif %}>Actifs</option>
+                                    <option value="?filter=archived" {% if filter_status == 'archived' %}selected{% endif %}>Archivés</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>                                  
+                </div>
+                <div class="card-body pt-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Moyen de paiement</th>
+                                    <th>État</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for typereg in typeregs %}
+                                    <tr {% if typereg.is_archived %}class="table-secondary"{% endif %}>
+                                        <td>{{ typereg.libelle }}</td>
+                                        <td>
+                                            {% if not typereg.is_archived %}
+                                                <span class="badge rounded text-success bg-success-subtle">Actif</span>
+                                            {% else %}
+                                                <span class="badge rounded text-white bg-warning">Inactif</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn {% if typereg.is_archived %}btn-success{% else %}btn-warning{% endif %} btn-sm" data-bs-toggle="modal" data-bs-target="#archiveModal{{ typereg.pk }}">
+                                                {% if typereg.is_archived %}
+                                                    <i class="las la-check"></i> Réactiver
+                                                {% else %}
+                                                    <i class="las la-archive"></i> Archiver
+                                                {% endif %}
+                                            </button>
+                                            <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ typereg.pk }}">
+                                                <i class="las la-pen"></i> Modifier
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal d'édition -->
+                                    <div class="modal fade" id="editModal{{ typereg.pk }}" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form method="post" action="{% url 'typereg_edit' typereg.pk %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="editModalLabel">Modifier le type de règlement</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <div class="col-md-12 mb-3">
+                                                                <label for="libelle" class="form-label">Moyen de paiement</label>
+                                                                <input type="text" name="libelle" class="form-control" value="{{ typereg.libelle }}" placeholder="Entrez le libellé" required>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Modal de confirmation d'archivage -->
+                                    <div class="modal fade" id="archiveModal{{ typereg.pk }}" tabindex="-1" aria-labelledby="archiveModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form method="post" action="{% url 'typereg_archive' typereg.pk %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="archiveModalLabel">
+                                                            {% if typereg.is_archived %}Réactiver{% else %}Archiver{% endif %} le type de règlement
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Êtes-vous sûr de vouloir 
+                                                        {% if typereg.is_archived %}réactiver{% else %}archiver{% endif %} 
+                                                        ce type de règlement ?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                        <button type="submit" class="btn btn-warning">
+                                                            {% if typereg.is_archived %}Réactiver{% else %}Archiver{% endif %}
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+    </div>  
+
+    <!-- Modal d'ajout -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="{% url 'typereg_create' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addModalLabel">Ajouter un type de règlement</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="libelle" class="form-label">Moyen de paiement</label>
+                                <input type="text" name="libelle" class="form-control" placeholder="Entrez le Moyen de paiement" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Ajouter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

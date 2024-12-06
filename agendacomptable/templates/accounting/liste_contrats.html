@@ -1,0 +1,137 @@
+{% extends 'accounting/base.html' %}
+{% load static %}
+<title>{% block title %}Liste des Contrats{% endblock %}</title>
+
+{% block content %}
+<div class="container-xxl">
+    <div class="row">
+        <div class="col-12">
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+                        <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                            {% if message.tags == 'success' %} bg-success
+                            {% elif message.tags == 'danger' %} bg-danger
+                            {% elif message.tags == 'warning' %} bg-warning
+                            {% elif message.tags == 'info' %} bg-purple
+                            {% else %} bg-secondary {% endif %} 
+                            rounded-circle mx-auto me-1">
+                            <i class="fas 
+                                {% if message.tags == 'success' %} fa-check
+                                {% elif message.tags == 'danger' %} fa-xmark
+                                {% elif message.tags == 'warning' %} fa-exclamation
+                                {% elif message.tags == 'info' %} fa-info
+                                {% else %} fa-info {% endif %}
+                                align-self-center mb-0 text-white"></i>
+                        </div>
+                        {{ message|safe }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-title">Liste des Contrats</h4>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-end">
+                            <a href="{% url 'ajouter_contrat' %}" class="btn btn-primary me-3">
+                                <i class="fas fa-plus me-1"></i> Ajouter un Contrat du Personne Physique
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Numéro</th>
+                                    <th>Nom et prénom</th>
+                                    <th>Date de début</th>
+                                    <th>Date de fin</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contrat in contrats %}
+                                    <tr>
+                                        <td>{{ contrat.id_contrat }}</td>
+                                        <td>{{ contrat.nom_prenom }}</td>
+                                        <td>{{ contrat.date_debut }}</td>
+                                        <td>{{ contrat.date_fin }}</td>
+                                        <td>
+                                            <!-- Bouton pour ouvrir le modal -->
+                                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#renouvelerModal{{ contrat.id_contrat }}">
+                                                <i class="las la-sync"></i> Renouveler
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal pour Renouveler -->
+                                    <div class="modal fade" id="renouvelerModal{{ contrat.id_contrat }}" tabindex="-1" aria-labelledby="renouvelerModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <form method="post" action="{% url 'renouveler_contrat' contrat.id_contrat %}">
+                                                    {% csrf_token %}
+                                                    <!-- عنوان المودال -->
+                                                    <div class="modal-header bg-primary text-white">
+                                                        <h5 class="modal-title" id="renouvelerModalLabel">
+                                                            <i class="las la-sync me-2"></i> تجديد العقد - {{ contrat.nom_prenom }}
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <!-- محتوى المودال -->
+                                                    <div class="modal-body"  dir="rtl">
+                                                        <p class="text-muted">يرجى ملء التفاصيل أدناه لتجديد العقد الخاص بـ <strong>{{ contrat.nom_prenom }}</strong>.</p>
+                                                        <div class="row">
+                                                            <!-- حقل الفترة الجديدة -->
+                                                            <div class="col-md-6 mb-3">
+                                                                <label for="nouvelle_periode_{{ contrat.id_contrat }}" class="form-label">الفترة الجديدة (بالأيام)</label>
+                                                                <input type="number" name="nouvelle_periode" id="nouvelle_periode_{{ contrat.id_contrat }}" class="form-control" placeholder="مثال: 365" required>
+                                                            </div>
+                                                            <!-- حقل الإيجار الجديد (العقد) -->
+                                                            <div class="col-md-6 mb-3">
+                                                                <label for="nouveau_loyer_contrat_{{ contrat.id_contrat }}" class="form-label">الإيجار الجديد (العقد)</label>
+                                                                <input type="number" name="nouveau_loyer_contrat" id="nouveau_loyer_contrat_{{ contrat.id_contrat }}" class="form-control" placeholder="بالدرهم" step="0.01" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <!-- حقل الإيجار الجديد (المنصة) -->
+                                                            <div class="col-md-6 mb-3">
+                                                                <label for="nouveau_loyer_plateforme_{{ contrat.id_contrat }}" class="form-label">الإيجار الجديد (المنصة)</label>
+                                                                <input type="number" name="nouveau_loyer_plateforme" id="nouveau_loyer_plateforme_{{ contrat.id_contrat }}" class="form-control" placeholder="بالدرهم" step="0.01" required>
+                                                            </div>
+                                                            <!-- حقل تاريخ البدء الجديد -->
+                                                            <div class="col-md-6 mb-3">
+                                                                <label for="nouvelle_date_debut_{{ contrat.id_contrat }}" class="form-label">تاريخ البدء الجديد</label>
+                                                                <input type="date" name="nouvelle_date_debut" id="nouvelle_date_debut_{{ contrat.id_contrat }}" class="form-control" required>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- أزرار المودال -->
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            <i class="las la-times-circle"></i> إلغاء
+                                                        </button>
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <i class="las la-check-circle"></i> تأكيد التجديد
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>                                    
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renouveler Contrat</title>
+</head>
+<body>
+    <h1>Renouveler le Contrat #{{ contrat.id_contrat }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="nouvelle_periode">Nouvelle période (jours):</label>
+        <input type="number" id="nouvelle_periode" name="nouvelle_periode" value="30" required><br>
+
+        <label for="nouveau_loyer_contrat">Nouveau loyer (contrat):</label>
+        <input type="number" id="nouveau_loyer_contrat" name="nouveau_loyer_contrat" value="{{ contrat.loyer_mensuel_contrat }}" step="0.01" required><br>
+
+        <label for="nouveau_loyer_plateforme">Nouveau loyer (plateforme):</label>
+        <input type="number" id="nouveau_loyer_plateforme" name="nouveau_loyer_plateforme" value="{{ contrat.loyer_mensuel_plateforme }}" step="0.01" required><br>
+
+        <button type="submit">Renouveler</button>
+    </form>
+    <a href="{% url 'liste_contrats' %}">Retour à la liste</a>
+</body>
+</html>

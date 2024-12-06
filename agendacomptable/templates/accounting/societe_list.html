@@ -1,0 +1,151 @@
+{% extends 'accounting/base.html' %}
+{% load static %}
+<title>Paramètres de la Société</title>
+
+{% block content %}
+<div class="container-xxl">
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+            <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                {% if message.tags == 'success' %} bg-success
+                {% elif message.tags == 'danger' %} bg-danger
+                {% elif message.tags == 'warning' %} bg-warning
+                {% elif message.tags == 'info' %} bg-purple
+                {% else %} bg-secondary {% endif %} 
+                rounded-circle mx-auto me-1">
+                <i class="fas 
+                    {% if message.tags == 'success' %} fa-check
+                    {% elif message.tags == 'danger' %} fa-xmark
+                    {% elif message.tags == 'warning' %} fa-exclamation
+                    {% elif message.tags == 'info' %} fa-info
+                    {% else %} fa-info {% endif %}
+                    align-self-center mb-0 text-white"></i>
+            </div>
+            {{ message|safe }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="card">
+        <div class="card-header text-center">
+            <h3>Paramètres de la Société</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Top Row: Company Name and Creation Date -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label for="libelle" class="form-label">Raison Sociale</label>
+                        <input type="text" class="form-control" id="libelle" name="libelle" value="{{ societe.libelle|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_creation" class="form-label">Date de Création</label>
+                        <input type="date" class="form-control" id="date_creation" name="date_creation" value="{{ societe.date_creation|date:"Y-m-d"|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- Row: Activity and Activity (Arabic) -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label for="activite" class="form-label">Activité</label>
+                        <textarea class="form-control" id="activite" name="activite">{{ societe.activite|default:'' }}</textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="activite_ar" class="form-label text-end d-block">الخدمات</label>
+                        <textarea class="form-control" id="activite_ar" name="activite_ar">{{ societe.activite_ar|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Row: Address and Address (Arabic) -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label for="adresse" class="form-label">Adresse</label>
+                        <textarea class="form-control" id="adresse" name="adresse">{{ societe.adresse|default:'' }}</textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="adresse_ar" class="form-label text-end d-block">العنوان</label>
+                        <textarea class="form-control" id="adresse_ar" name="adresse_ar">{{ societe.adresse_ar|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Row: City and City (Arabic) -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="ville" class="form-label">Ville</label>
+                        <input type="text" class="form-control" id="ville" name="ville" value="{{ societe.ville|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="ville_ar" class="form-label text-end d-block">المدينة</label>
+                        <input type="text" class="form-control" id="ville_ar" name="ville_ar" value="{{ societe.ville_ar|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- Row: Mail and Manager (Arabic) -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="mail" class="form-label">Mail</label>
+                        <input type="email" class="form-control" id="mail" name="mail" value="{{ societe.mail|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="gerant_ar" class="form-label text-end d-block">المسير</label>
+                        <input type="text" class="form-control" id="gerant_ar" name="gerant_ar" value="{{ societe.gerant_ar|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- Row: Manager, RIB, and Logo -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="gerant" class="form-label">Gérant</label>
+                        <input type="text" class="form-control" id="gerant" name="gerant" value="{{ societe.gerant|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="rib" class="form-label">RIB</label>
+                        <input type="text" class="form-control" id="rib" name="rib" value="{{ societe.rib|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="logo" class="form-label">Logo</label>
+                        <input type="file" class="form-control" id="logo" name="logo">
+                        {% if societe.logo %}
+                        <center>
+                            <img src="{{ societe.logo.url }}" alt="Logo" class="mt-2" width="50%" style=" border-radius: 4px; box-shadow: 1px 1px 11px 1px #ededed70;">
+                        </center>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Row: IF, ICE, RC, CNSS -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="if_field" class="form-label">IF</label>
+                        <input type="text" class="form-control" id="if_field" name="if_field" value="{{ societe.if_field|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="ice" class="form-label">ICE</label>
+                        <input type="text" class="form-control" id="ice" name="ice" value="{{ societe.ice|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="rc" class="form-label">RC</label>
+                        <input type="text" class="form-control" id="rc" name="rc" value="{{ societe.rc|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="cnss" class="form-label">CNSS</label>
+                        <input type="text" class="form-control" id="cnss" name="cnss" value="{{ societe.cnss|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- Submit and Close Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

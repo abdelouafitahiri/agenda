@@ -1,0 +1,92 @@
+{% extends 'accounting/base.html' %}
+<title>{% block title %}Préparation du mois{% endblock %}</title>
+
+{% block content %}
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if message %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+                    <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                        {% if message.tags == 'success' %} bg-success
+                        {% elif message.tags == 'danger' %} bg-danger
+                        {% elif message.tags == 'warning' %} bg-warning
+                        {% elif message.tags == 'info' %} bg-purple
+                        {% else %} bg-secondary {% endif %} 
+                        rounded-circle mx-auto me-1">
+                        <i class="fas 
+                            {% if message.tags == 'success' %} fa-check
+                            {% elif message.tags == 'danger' %} fa-xmark
+                            {% elif message.tags == 'warning' %} fa-exclamation
+                            {% elif message.tags == 'info' %} fa-info
+                            {% else %} fa-info {% endif %}
+                            align-self-center mb-0 text-white"></i>
+                    </div>
+                    {{ message|safe }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+    
+        <!-- Card Grid -->
+        <div class="row">
+            {% for month in months %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card {% if month.is_active %}card-active{% else %}card-inactive{% endif %}">
+                    <div class="card-body">
+                        <div class="position-absolute top-0 end-0 mt-3 me-3 text-end">
+                            <span class="badge {% if month.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if month.is_active %}Activé{% else %}Désactivé{% endif %}
+                            </span>
+                        </div>
+                        <div class="text-center border-dashed-bottom pb-3">
+                            {% if month.is_active %}
+                            <i class="iconoir-calendar-minus" style="font-size:70px;"></i>
+                            {% else %}
+                            <i class="iconoir-calendar-plus" style="font-size:70px;"></i>
+                            
+                            {% endif %}
+                            <h5 class="fw-bold my-2">{{ month.get_month_display }} {{ month.year }}</h5>
+                        </div>
+                        <div class="mt-3">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <button 
+                                    type="submit" 
+                                    name="toggle_month" 
+                                    value="{{ month.id }}" 
+                                    class="btn {% if month.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} w-100">
+                                    {% if month.is_active %}Désactiver{% else %}Activer{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div><!--end card-body-->  
+                </div><!--end card-->
+            </div><!--end col-->
+            {% endfor %}
+        </div>
+
+
+ <!-- Pied de page -->
+ <footer class="footer text-center text-sm-start d-print-none">
+    <div class="container-xxl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-0 rounded-bottom-0">
+                    <div class="card-body">
+                        <p class="text-muted mb-0">
+                            © <script> document.write(new Date().getFullYear()) </script>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Fin du pied de page -->
+{% endblock content %}
+
+{% block extra_scripts %}
+{% endblock extra_scripts %}

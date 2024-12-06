@@ -1,0 +1,286 @@
+{% extends 'accounting/base.html' %}
+<title>{% block title %}Gestion des paiements{% endblock %}</title>
+
+{% block content %}
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if message %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+                    <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                        {% if message.tags == 'success' %} bg-success
+                        {% elif message.tags == 'danger' %} bg-danger
+                        {% elif message.tags == 'warning' %} bg-warning
+                        {% elif message.tags == 'info' %} bg-purple
+                        {% else %} bg-secondary {% endif %} 
+                        rounded-circle mx-auto me-1">
+                        <i class="fas 
+                            {% if message.tags == 'success' %} fa-check
+                            {% elif message.tags == 'danger' %} fa-xmark
+                            {% elif message.tags == 'warning' %} fa-exclamation
+                            {% elif message.tags == 'info' %} fa-info
+                            {% else %} fa-info {% endif %}
+                            align-self-center mb-0 text-white"></i>
+                    </div>
+                    {{ message|safe }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+    
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="month" class="form-label">Mois</label>
+                            <select id="month" name="month" class="form-select">
+                                {% for month in months %}
+                                <option value="{{ month.month }}" data-year="{{ month.year }}" {% if not month.is_active %}disabled{% endif %}>
+                                    {{ month.get_month_display }} - {{ month.year }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="year" class="form-label">Année</label>
+                            <select id="year" name="year" class="form-select" onchange="updateMonths()">
+                                {% for exercice in exercices %}
+                                <option value="{{ exercice.libelle }}" {% if exercice.libelle == current_year %}selected{% endif %}>
+                                    {{ exercice.libelle }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" name="prepare_month" class="btn btn-primary w-100">Générer les paiements</button>
+                        </div>
+                    </div>
+                    <script>
+                        function updateMonths() {
+                            const selectedYear = document.getElementById("year").value;
+                            const monthOptions = document.querySelectorAll("#month option");
+                            
+                            // تحديث النص الخاص بالأشهر بناءً على السنة المحددة
+                            monthOptions.forEach(option => {
+                                const monthDisplay = option.textContent.split(" - ")[0];
+                                option.textContent = `${monthDisplay} - ${selectedYear}`;
+                            });
+                        }
+                
+                        // تعيين السنة الحالية بشكل افتراضي عند تحميل الصفحة
+                        document.addEventListener("DOMContentLoaded", function () {
+                            updateMonths();
+                            
+                            // تعيين السنة الحالية بشكل افتراضي
+                            const yearSelect = document.getElementById("year");
+                            const currentYear = '{{ current_year }}';  // استخدم متغير السنة الحالية من Django
+                            yearSelect.value = currentYear;
+                            updateMonths();
+                        });
+                    </script>                    
+                </form>                
+            </div>
+        </div>
+        
+       
+        {% if grouped_payments %}
+            <div class="row mt-5">
+                <h4 class="mb-4" style="text-align-last: center;">Clients et services pour le mois sélectionné :</h4>
+                {% for customer, services in grouped_payments.items %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="text-center">
+                                <h5 class="card-title">{{ customer.raison_sociale }}</h5>
+                                <p class="card-text text-muted"><small>({{ customer.ville }})</small></p>
+                                <p class="text-muted"><strong>Total Services:</strong> {{ services|length }}</p>
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                <!-- Button to trigger modal -->
+                                <button 
+                                    type="button" 
+                                    class="btn btn-primary btn-sm w-75" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modal-{{ customer.id }}">
+                                    Voir les Services
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal for customer services -->
+                <div class="modal fade" id="modal-{{ customer.id }}" tabindex="-1" aria-labelledby="modalLabel-{{ customer.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalLabel-{{ customer.id }}">Services pour {{ customer.raison_sociale }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="table table-hover">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Nom du service</th>
+                                            <th>Date de début</th>
+                                            <th>Date de fin</th>
+                                            <th>Prix (MAD)</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in services %}
+                                        <tr id="payment-row-{{ payment.id }}" class="{% if payment.is_paid %}table-success{% else %}table-danger{% endif %}">
+                                            <td class="text-center">{{ forloop.counter }}</td>
+                                            <td>{{ payment.service.service.libelle }}</td>
+                                            <td class="text-center">{{ payment.service.date_debut|date:"d/m/Y" }}</td>
+                                            <td class="text-center">{{ payment.service.date_fin|date:"d/m/Y" }}</td>
+                                            <td class="text-end">{{ payment.service.prix }}</td>
+                                            <td class="text-center">
+                                                <span class="badge {% if payment.is_paid %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {% if payment.is_paid %}
+                                                        Payé
+                                                    {% else %}
+                                                        Non payé
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                {% if payment.is_paid %}
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-warning btn-sm toggle-payment" 
+                                                        data-action="unpay-{{ payment.id }}">
+                                                        Annuler
+                                                    </button>
+                                                {% else %}
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-success btn-sm toggle-payment" 
+                                                        data-action="pay-{{ payment.id }}">
+                                                        Confirmer
+                                                    </button>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+    
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelectorAll(".toggle-payment").forEach(button => {
+                    button.addEventListener("click", function () {
+                        const action = this.dataset.action;
+                        const [actionType, paymentId] = action.split("-");
+                        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    
+                        fetch("", {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": csrfToken,
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                            body: new URLSearchParams({
+                                "payment_action": action,
+                            }),
+                        })
+                        .then(response => response.text())
+                        .then(data => {
+                            if (actionType === "pay") {
+                                document.querySelector(`#payment-row-${paymentId}`).classList.remove("table-danger");
+                                document.querySelector(`#payment-row-${paymentId}`).classList.add("table-success");
+                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.remove("bg-danger");
+                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.add("bg-success");
+                                document.querySelector(`#payment-row-${paymentId} .badge`).textContent = "Payé";
+                                this.classList.remove("btn-success");
+                                this.classList.add("btn-warning");
+                                this.textContent = "Annuler";
+                                this.dataset.action = `unpay-${paymentId}`;
+                            } else if (actionType === "unpay") {
+                                document.querySelector(`#payment-row-${paymentId}`).classList.remove("table-success");
+                                document.querySelector(`#payment-row-${paymentId}`).classList.add("table-danger");
+                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.remove("bg-success");
+                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.add("bg-danger");
+                                document.querySelector(`#payment-row-${paymentId} .badge`).textContent = "Non payé";
+                                this.classList.remove("btn-warning");
+                                this.classList.add("btn-success");
+                                this.textContent = "Confirmer";
+                                this.dataset.action = `pay-${paymentId}`;
+                            }
+                        })
+                        .catch(error => console.error("Error:", error));
+                    });
+                });
+            });
+        </script>
+
+        
+<!-- Pagination -->
+<ul class="pagination justify-content-center mt-4">
+    {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Précédent">
+                <span aria-hidden="true">«</span>
+            </a>
+        </li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <li class="page-item active">
+                <a class="page-link" href="#">{{ num }}</a>
+            </li>
+        {% else %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Suivant">
+                <span aria-hidden="true">»</span>
+            </a>
+        </li>
+    {% endif %}
+</ul>
+
+ <!-- Pied de page -->
+ <footer class="footer text-center text-sm-start d-print-none">
+    <div class="container-xxl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-0 rounded-bottom-0">
+                    <div class="card-body">
+                        <p class="text-muted mb-0">
+                            © <script> document.write(new Date().getFullYear()) </script>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Fin du pied de page -->
+{% endblock content %}
+
+{% block extra_scripts %}
+{% endblock extra_scripts %}

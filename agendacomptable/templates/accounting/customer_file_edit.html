@@ -1,0 +1,745 @@
+
+{% extends 'accounting/base.html' %}
+{% load static %}
+
+<title>{% block title %}Modifier un Dossier Client{% endblock %}</title>
+
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            {% if message %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+                <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                    {% if message.tags == 'success' %} bg-success
+                    {% elif message.tags == 'danger' %} bg-danger
+                    {% elif message.tags == 'warning' %} bg-warning
+                    {% elif message.tags == 'info' %} bg-purple
+                    {% else %} bg-secondary {% endif %} 
+                    rounded-circle mx-auto me-1">
+                    <i class="fas 
+                        {% if message.tags == 'success' %} fa-check
+                        {% elif message.tags == 'danger' %} fa-xmark
+                        {% elif message.tags == 'warning' %} fa-exclamation
+                        {% elif message.tags == 'info' %} fa-info
+                        {% else %} fa-info {% endif %}
+                        align-self-center mb-0 text-white"></i>
+                </div>
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    <div class="card">
+        <div class="card-header text-center">
+            <h3>Modifier Dossier Client</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab">
+                        <a class="nav-link py-2 active" id="step1-tab" data-bs-toggle="tab" href="#step1">Informations Générales</a>
+                        <a class="nav-link py-2" id="step2-tab" data-bs-toggle="tab" href="#step2">Contact</a>
+                        <a class="nav-link py-2" id="step3-tab" data-bs-toggle="tab" href="#step3">Fiscales & Juridiques</a>
+                        <a class="nav-link py-2" id="step4-tab" data-bs-toggle="tab" href="#step4">Options</a>
+                        <a class="nav-link py-2" id="step5-tab" data-bs-toggle="tab" href="#step5">Associés</a>
+                        <a class="nav-link py-2" id="step6-tab" data-bs-toggle="tab" href="#step6">E-Documents</a>
+                    </div>
+                </nav>
+
+                <div class="tab-content" id="nav-tabContent">
+                    <!-- Step 1: General Information -->
+                    <div class="tab-pane active" id="step1">
+                        <h5 class="my-4">Informations Générales du Client</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="raison_sociale" class="form-label">Raison Sociale</label>
+                                <input type="text" class="form-control" id="raison_sociale" name="raison_sociale" value="{{ customer_file.raison_sociale }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date_creation" class="form-label">Date de Création</label>
+                                <input type="date" class="form-control" id="date_creation" name="date_creation" value="{{ customer_file.date_creation|date:'Y-m-d' }}" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="adresse" class="form-label">Adresse</label>
+                                <input type="text" class="form-control" id="adresse" name="adresse" value="{{ customer_file.adresse }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ville" class="form-label">Ville</label>
+                                <input type="text" class="form-control" id="ville" name="ville" value="{{ customer_file.ville }}" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="activite" class="form-label">Activité</label>
+                                <input class="form-control" id="activite" name="activite" value="{{ customer_file.activite }}" required/>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="email" class="form-label">E-Mail</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ customer_file.email }}">
+                            </div>
+                        </div>
+                        <button type="button" id="step1Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+
+                    <!-- Step 2: Contact Information -->
+                    <div class="tab-pane" id="step2">
+                        <h5 class="my-4">Informations de Contact</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="personne_1" class="form-label">Personne 1</label>
+                                <input type="text" class="form-control" id="personne_1" name="personne_1" value="{{ customer_file.personne_1 }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="personne_2" class="form-label">Personne 2</label>
+                                <input type="text" class="form-control" id="personne_2" name="personne_2" value="{{ customer_file.personne_2 }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="telephone" class="form-label">Téléphone</label>
+                                <input type="text" class="form-control" id="telephone" name="telephone" value="{{ customer_file.telephone }}">
+                            </div>
+                        </div>
+                        <button type="button" id="step2Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step2Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+
+                    <!-- Step 3: Fiscal and Legal Information -->
+                    <div class="tab-pane" id="step3">
+                        <h5 class="my-4">Informations Fiscales et Juridiques</h5>
+                        
+                        <!-- First Row -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="regime_tva" class="form-label">Régime TVA</label>
+                                <select class="form-control" id="regime_tva" name="regime_tva">
+                                    <option value="">Sélectionner</option>
+                                    {% for regime in regimes %}
+                                        <option value="{{ regime.id }}" {% if customer_file.regime_tva_id == regime.id %}selected{% endif %}>
+                                            {{ regime.libelle }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="forme_juridique" class="form-label">Forme Juridique</label>
+                                <select class="form-control" id="forme_juridique" name="forme_juridique">
+                                    <option value="">Sélectionner</option>
+                                    {% for forme in formes_juridiques %}
+                                        <option value="{{ forme.id }}" {% if customer_file.forme_juridique_id == forme.id %}selected{% endif %}>
+                                            {{ forme.libelle }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Second Row -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="identifiant_fiscal" class="form-label">IF</label>
+                                <input type="text" class="form-control" id="identifiant_fiscal" name="identifiant_fiscal" value="{{ customer_file.identifiant_fiscal }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="ice" class="form-label">ICE</label>
+                                <input type="text" class="form-control" id="ice" name="ice" value="{{ customer_file.ice }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Third Row -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="registre_commerce" class="form-label">Registre Commerce</label>
+                                <input type="text" class="form-control" id="registre_commerce" name="registre_commerce" value="{{ customer_file.registre_commerce }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cnss" class="form-label">CNSS</label>
+                                <input type="text" class="form-control" id="cnss" name="cnss" value="{{ customer_file.cnss }}">
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="step3Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step3Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+                    
+                    <!-- Step 4: Options -->
+                    <div class="tab-pane" id="step4">
+                        <h5 class="my-4">Options de Domiciliation et Comptabilité</h5>
+                        <div class="row mb-4">
+                            <!-- Domiciliation -->
+                            <div class="col-md-6">
+                                <label for="domiciliation" class="form-label">Domiciliation</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="domiciliation" name="domiciliation" 
+                                        {% if customer_file.domiciliation %}checked{% endif %}>
+                                    <label class="form-check-label" for="domiciliation">Activer la domiciliation</label>
+                                </div>
+                            </div>
+
+                            <!-- Tenue Comptabilité -->
+                            <div class="col-md-6">
+                                <label for="tenue_comptabilite" class="form-label">Tenue Comptabilité</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="tenue_comptabilite" name="tenue_comptabilite" 
+                                        {% if customer_file.tenue_comptabilite %}checked{% endif %} onchange="toggleTenueComptabilite()">
+                                    <label class="form-check-label" for="tenue_comptabilite">Activer la tenue comptabilité</label>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row mb-3">
+                            <!-- Cabinet Comptable -->
+                            <div class="col-md-6" id="cabinetComptableField">
+                                <label for="cabinet_comptable" class="form-label">Cabinet Comptable</label>
+                                <select class="form-control" id="cabinet_comptable" name="cabinet_comptable">
+                                    <option value="">Sélectionner</option>
+                                    {% for comptable in comptables %}
+                                        <option value="{{ comptable.id }}" {% if customer_file.cabinet_comptable_id == comptable.id %}selected{% endif %}>
+                                            {{ comptable.lib_08 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Modifier un Service -->
+                            <div class="col-md-6" id="addServiceField" style="display: none; margin-top: 25px;">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#servicesModal">Ajouter un Service</button>
+                            </div>
+                            <!-- Date Réception Dossier -->
+                            <div class="col-md-6">
+                                <label for="date_reception_dossier" class="form-label">Date Réception Dossier</label>
+                                <input type="date" class="form-control" id="date_reception_dossier" name="date_reception_dossier" value="{{ customer_file.date_reception_dossier|date:'Y-m-d' }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Services Section -->
+                        <div id="servicesSection" style="display: {% if customer_file.tenue_comptabilite or customer_file.domiciliation %}block{% else %}none{% endif %};">
+                            <h5 class="mt-4">Services Ajoutés</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="addedServicesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th>Prix</th>
+                                            <th>Date Début</th>
+                                            <th>Date Fin</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="addedServicesContainer">
+                                        {% for service_entry in customer_file.services.all %}
+                                        <tr>
+                                            <td>
+                                                <input type="hidden" name="service_id[]" value="{{ service_entry.service.id }}">
+                                                {{ service_entry.service.libelle }}
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control" name="service_prix[]" value="{{ service_entry.prix }}" step="0.01">
+                                            </td>
+                                            <td>
+                                                <input type="date" class="form-control" name="service_date_debut[]" value="{{ service_entry.date_debut|date:'Y-m-d' }}">
+                                            </td>
+                                            <td>
+                                                <input type="date" class="form-control" name="service_date_fin[]" value="{{ service_entry.date_fin|date:'Y-m-d' }}">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Supprimer</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+
+
+
+                        <button type="button" id="step4Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step4Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+
+                    <!-- Modal for Adding Services -->
+                    <div class="modal fade" id="servicesModal" tabindex="-1" aria-labelledby="servicesModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="servicesModalLabel">Modifier un Service</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="service" class="form-label">Service</label>
+                                            <select class="form-control" id="service" name="service">
+                                                <option value="">Sélectionner</option>
+                                                {% for service in services %}
+                                                        <option value="{{ service.id }}" data-prix="{{ service.prix }}">{{ service.libelle }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="prix" class="form-label">Prix</label>
+                                            <input type="number" class="form-control" id="prix" name="prix" step="0.01">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="date_debut" class="form-label">Date Début</label>
+                                            <input type="date" class="form-control" id="date_debut" name="date_debut">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="date_fin" class="form-label">Date Fin</label>
+                                            <input type="date" class="form-control" id="date_fin" name="date_fin">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="button" class="btn btn-primary" onclick="addService()">Modifier</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        document.getElementById('service').addEventListener('change', function() {
+                            var selectedOption = this.options[this.selectedIndex];
+                            var prix = selectedOption.getAttribute('data-prix');
+                            document.getElementById('prix').value = prix;
+                        });
+                    </script>
+                    
+                    <script>
+                        function toggleTenueComptabilite() {
+                            const tenueComptabilite = document.getElementById('tenue_comptabilite').checked;
+                            const cabinetComptableField = document.getElementById('cabinetComptableField');
+                            const addServiceField = document.getElementById('addServiceField');
+                            const servicesSection = document.getElementById('servicesSection');
+                    
+                            if (tenueComptabilite) {
+                                cabinetComptableField.style.display = 'none';
+                                addServiceField.style.display = 'block';
+                                servicesSection.style.display = 'block';
+                            } else {
+                                cabinetComptableField.style.display = 'block';
+                                addServiceField.style.display = 'none';
+                    
+                                const addedServicesContainer = document.getElementById('addedServicesContainer');
+                                if (!addedServicesContainer.hasChildNodes()) {
+                                    servicesSection.style.display = 'none';
+                                }
+                            }
+                        }
+                    
+
+                        function toggleDomiciliation() {
+                            const domiciliationCheckbox = document.getElementById('domiciliation');
+                            const domiciliationChecked = domiciliationCheckbox.checked;
+                            const servicesSection = document.getElementById('servicesSection');
+                            const addedServicesContainer = document.getElementById('addedServicesContainer');
+                        
+                            // البحث عن الصف الحالي للخدمة "Domiciliation"
+                            const existingDomiciliationRow = document.getElementById('domiciliationRow');
+                        
+                            if (domiciliationChecked) {
+                                
+                            } else {
+                                // إذا تم إلغاء التفعيل، احذف الصف
+                                removeDomiciliation();
+                            }
+                        }
+                        
+                        function removeDomiciliation() {
+                            const domiciliationRow = document.getElementById('domiciliationRow');
+                            if (domiciliationRow) {
+                                domiciliationRow.remove();
+                            }
+                        
+                            const addedServicesContainer = document.getElementById('addedServicesContainer');
+                            if (!addedServicesContainer.hasChildNodes()) {
+                                document.getElementById('servicesSection').style.display = 'none';
+                            }
+                        }
+                        
+                        // تحديث عند تحميل الصفحة
+                        document.addEventListener("DOMContentLoaded", function () {
+                            const domiciliationCheckbox = document.getElementById('domiciliation');
+                            const existingDomiciliationRow = document.getElementById('domiciliationRow');
+                            
+                            // تأكد من أن الخدمة معروضة فقط إذا كانت مفعلة مسبقًا
+                            if (domiciliationCheckbox.checked && !existingDomiciliationRow) {
+                                toggleDomiciliation();
+                            } else if (!domiciliationCheckbox.checked && existingDomiciliationRow) {
+                                removeDomiciliation();
+                            }
+                        });
+                        
+                        
+                        function removeDomiciliation() {
+                            const domiciliationRow = document.getElementById('domiciliationRow');
+                            if (domiciliationRow) {
+                                domiciliationRow.remove();
+                            }
+                        
+                            const addedServicesContainer = document.getElementById('addedServicesContainer');
+                            if (!addedServicesContainer.hasChildNodes()) {
+                                document.getElementById('servicesSection').style.display = 'none';
+                            }
+                        }
+                        
+                    
+                        function removeDomiciliation() {
+                            const domiciliationRow = document.getElementById('domiciliationRow');
+                            if (domiciliationRow) {
+                                domiciliationRow.remove();
+                            }
+                    
+                            const addedServicesContainer = document.getElementById('addedServicesContainer');
+                            if (!addedServicesContainer.hasChildNodes()) {
+                                document.getElementById('servicesSection').style.display = 'none';
+                            }
+                        }
+                    
+                        function addService() {
+                            const service = document.getElementById('service').value;
+                            const serviceName = document.getElementById('service').options[document.getElementById('service').selectedIndex].text;
+                            const prix = document.getElementById('prix').value;
+                            const dateDebut = document.getElementById('date_debut').value;
+                            const dateFin = document.getElementById('date_fin').value;
+                    
+                            if (!service || !prix || !dateDebut || !dateFin) {
+                                alert("Veuillez remplir tous les champs avant d'ajouter un service.");
+                                return;
+                            }
+                    
+                            const addedServicesContainer = document.getElementById('addedServicesContainer');
+                            const serviceRow = `
+                                <tr>
+                                    <td><input type="hidden" name="service_id[]" value="${service}">${serviceName}</td>
+                                    <td><input type="number" class="form-control" name="service_prix[]" value="${prix}" step="0.01" readonly></td>
+                                    <td><input type="date" class="form-control" name="service_date_debut[]" value="${dateDebut}" readonly></td>
+                                    <td><input type="date" class="form-control" name="service_date_fin[]" value="${dateFin}" readonly></td>
+                                    <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Supprimer</button></td>
+                                </tr>`;
+                            addedServicesContainer.insertAdjacentHTML('beforeend', serviceRow);
+                    
+                            // Reset modal fields and close
+                            document.getElementById('service').value = '';
+                            document.getElementById('prix').value = '';
+                            document.getElementById('date_debut').value = '';
+                            document.getElementById('date_fin').value = '';
+                            bootstrap.Modal.getInstance(document.getElementById('servicesModal')).hide();
+                        }
+                    
+                        document.addEventListener("DOMContentLoaded", function () {
+                            toggleDomiciliation();
+                            toggleTenueComptabilite();
+                        });
+                    </script>                    
+
+                    <!-- Step 5: Associés -->
+                    <div class="tab-pane" id="step5">
+                        <h5 class="my-4">Associés</h5>
+
+                        <!-- Modifier un Associé -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#associeModal">Ajouter un Associé</button>
+                            </div>
+                        </div>
+
+                        <!-- Table for added associés -->
+                        <div id="associesSection">
+                            <h5 class="mt-4">Associés Ajoutés</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="addedAssociesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Prénom</th>
+                                            <th>CIN</th>
+                                            <th>Parts Sociales</th>
+                                            <th>Montant</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="addedAssociesContainer">
+                                        {% for associe in customer_file.associes.all %}
+                                        <tr data-id="{{ associe.id }}">
+                                            <td><input type="text" class="form-control" name="associe_nom[]" value="{{ associe.nom }}"></td>
+                                            <td><input type="text" class="form-control" name="associe_prenom[]" value="{{ associe.prenom }}"></td>
+                                            <td><input type="text" class="form-control" name="associe_cine[]" value="{{ associe.cine }}"></td>
+                                            <td><input type="number" class="form-control" name="associe_parts[]" value="{{ associe.parts }}"></td>
+                                            <td><input type="number" class="form-control" name="associe_montant[]" value="{{ associe.montant }}"></td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Supprimer</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Modal for Adding Associé -->
+                        <div class="modal fade" id="associeModal" tabindex="-1" aria-labelledby="associeModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="associeModalLabel">Ajouter un Associé</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_nom" class="form-label">Nom</label>
+                                                <input type="text" class="form-control" id="associe_nom" name="associe_nom">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_prenom" class="form-label">Prénom</label>
+                                                <input type="text" class="form-control" id="associe_prenom" name="associe_prenom">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_datn" class="form-label">Date de Naissance</label>
+                                                <input type="date" class="form-control" id="associe_datn" name="associe_datn">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_cine" class="form-label">CIN</label>
+                                                <input type="text" class="form-control" id="associe_cine" name="associe_cine">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <label for="associe_adresse" class="form-label">Adresse</label>
+                                                <input type="text" class="form-control" id="associe_adresse" name="associe_adresse">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_profession" class="form-label">Profession</label>
+                                                <input type="text" class="form-control" id="associe_profession" name="associe_profession">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_qualite" class="form-label">Qualité</label>
+                                                <select class="form-control" id="associe_qualite" name="associe_qualite">
+                                                    <option value="">Sélectionner</option>
+                                                    {% for qualite in qualites %}
+                                                        <option value="{{ qualite.id }}">{{ qualite.libelle }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="associe_parts" class="form-label">Parts Sociales</label>
+                                                <input type="number" class="form-control" id="associe_parts" name="associe_parts">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="associe_montant" class="form-label">Montant</label>
+                                                <input type="number" class="form-control" id="associe_montant" name="associe_montant" step="0.01">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="button" class="btn btn-primary" onclick="addAssocie()">Ajouter</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="step5Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="button" id="step5Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
+
+                    <script>
+                        function addAssocie() {
+                            const nom = document.getElementById('associe_nom').value;
+                            const prenom = document.getElementById('associe_prenom').value;
+                            const cine = document.getElementById('associe_cine').value;
+                            const parts = document.getElementById('associe_parts').value;
+                            const montant = document.getElementById('associe_montant').value;
+
+                            if (!nom || !prenom || !parts || !montant) {
+                                alert("Veuillez remplir tous les champs obligatoires.");
+                                return;
+                            }
+
+                            const addedAssociesContainer = document.getElementById('addedAssociesContainer');
+                            const associeRow = `
+                                <tr>
+                                    <td><input type="text" class="form-control" name="associe_nom[]" value="${nom}"></td>
+                                    <td><input type="text" class="form-control" name="associe_prenom[]" value="${prenom}"></td>
+                                    <td><input type="text" class="form-control" name="associe_cine[]" value="${cine}"></td>
+                                    <td><input type="number" class="form-control" name="associe_parts[]" value="${parts}"></td>
+                                    <td><input type="number" class="form-control" name="associe_montant[]" value="${montant}"></td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Supprimer</button>
+                                    </td>
+                                </tr>
+                            `;
+                            addedAssociesContainer.insertAdjacentHTML('beforeend', associeRow);
+
+                            // Reset fields
+                            document.getElementById('associe_nom').value = '';
+                            document.getElementById('associe_prenom').value = '';
+                            document.getElementById('associe_cine').value = '';
+                            document.getElementById('associe_parts').value = '';
+                            document.getElementById('associe_montant').value = '';
+
+                            // Close modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('associeModal'));
+                            modal.hide();
+                        }
+
+                        function editAssocie(button) {
+                            const row = button.closest('tr');
+
+                            // تعبئة القيم في النموذج
+                            document.getElementById('associe_nom').value = row.querySelector('[name="associe_nom[]"]').value;
+                            document.getElementById('associe_prenom').value = row.querySelector('[name="associe_prenom[]"]').value;
+                            document.getElementById('associe_cine').value = row.querySelector('[name="associe_cine[]"]').value;
+                            document.getElementById('associe_parts').value = row.querySelector('[name="associe_parts[]"]').value;
+                            document.getElementById('associe_montant').value = row.querySelector('[name="associe_montant[]"]').value;
+
+                            // Remove row when editing
+                            row.remove();
+
+                            // Open the modal
+                            const modal = new bootstrap.Modal(document.getElementById('associeModal'));
+                            modal.show();
+                        }
+                    </script>
+
+                    <!-- Step 6: E-Documents -->
+                    <div class="tab-pane" id="step6">
+                        <h5 class="my-4">E-Documents</h5>
+
+                        <!-- زر لإظهار المودال -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#documentModal">Ajouter un Document</button>
+                            </div>
+                        </div>
+
+                        
+                        <!-- جدول عرض الملفات المرفوعة -->
+                        <div id="documentSection">
+                            <h5 class="mt-4">Documents Ajoutés</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="addedDocumentsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom du Fichier</th>
+                                            <th>Type</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="addedDocumentsContainer">
+                                        {% for document in documents %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ document.file.url }}" target="_blank">{{ document.file.name }}</a>
+                                                <input type="hidden" name="existing_document_ids[]" value="{{ document.id }}">
+                                            </td>
+                                            <td>{{ document.file.name|slice:"-3:" }}</td>
+                                            <td>
+                                                <a href="{{ document.file.url }}" target="_blank">
+                                                    <button type="button" class="btn btn-primary btn-sm">
+                                                    Afficher le fichier
+                                                </button>
+                                                </a>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="removeExistingDocument(this, {{ document.id }})">Supprimer</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- المودال لإضافة ملفات جديدة -->
+                        <div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="documentModalLabel">Ajouter un Document</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <label for="document_file" class="form-label">Fichiers</label>
+                                                <input type="file" class="form-control" id="document_file" name="document_file[]" multiple>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="button" class="btn btn-primary" id="addDocumentButton" data-bs-dismiss="modal">Ajouter</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="step6Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="submit" class="btn btn-success float-end mt-3">Enregistrer</button>
+
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function () {
+                                const addDocumentButton = document.getElementById("addDocumentButton");
+                                const fileInput = document.getElementById("document_file");
+                                const addedDocumentsContainer = document.getElementById("addedDocumentsContainer");
+
+                                addDocumentButton.addEventListener("click", function () {
+                                    const files = fileInput.files;
+
+                                    if (files.length === 0) {
+                                        alert("Veuillez sélectionner au moins un fichier.");
+                                        return;
+                                    }
+
+                                    for (let i = 0; i < files.length; i++) {
+                                        const file = files[i];
+                                        const fileName = file.name;
+                                        const fileType = file.type.split("/")[1] || "Unknown";
+
+                                        const row = `
+                                            <tr>
+                                                <td>${fileName}<input type="hidden" name="new_document_files[]" value="${fileName}"></td>
+                                                <td>${fileType}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeDocument(this)">Supprimer</button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                        addedDocumentsContainer.insertAdjacentHTML("beforeend", row);
+                                    }
+                                    
+                                });
+
+                                window.removeDocument = function (button) {
+                                    const row = button.closest("tr");
+                                    row.remove();
+                                };
+
+                                window.removeExistingDocument = function (button, documentId) {
+                                    const row = button.closest("tr");
+                                    row.remove();
+                                    const hiddenInput = `<input type="hidden" name="removed_document_ids[]" value="${documentId}">`;
+                                    addedDocumentsContainer.insertAdjacentHTML("beforeend", hiddenInput);
+                                };
+                            });
+                        </script>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

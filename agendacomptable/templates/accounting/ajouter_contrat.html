@@ -1,0 +1,142 @@
+{% extends 'accounting/base.html' %}
+{% load static %}
+<title>{% block title %}Contrat Domiciliation Personne Physique{% endblock %}</title>
+
+{% block content %}
+<div class="container-xxl" dir="rtl">
+
+    <!-- رسائل تنبيه -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-theme-white-2" role="alert">
+                <div class="d-inline-flex justify-content-center align-items-center thumb-xs 
+                    {% if message.tags == 'success' %} bg-success
+                    {% elif message.tags == 'danger' %} bg-danger
+                    {% elif message.tags == 'warning' %} bg-warning
+                    {% elif message.tags == 'info' %} bg-purple
+                    {% else %} bg-secondary {% endif %} 
+                    rounded-circle mx-auto me-1">
+                    <i class="fas 
+                        {% if message.tags == 'success' %} fa-check
+                        {% elif message.tags == 'danger' %} fa-xmark
+                        {% elif message.tags == 'warning' %} fa-exclamation
+                        {% elif message.tags == 'info' %} fa-info
+                        {% else %} fa-info {% endif %}
+                        align-self-center mb-0 text-white"></i>
+                </div>
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- بطاقة النموذج -->
+    <div class="card">
+        <div class="card-header text-center">
+            <h3>
+                عقد التوطين للأشخاص الماديين           
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- رقم العقد -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="id_contrat" class="form-label">رقم العقد</label>
+                        <input type="text" class="form-control" id="id_contrat" name="id_contrat" value="{{ contrat.id_contrat|default:'' }}" readonly>
+                    </div>
+                </div>
+                
+                <!-- الاسم وتاريخ العقد -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label for="nom_prenom" class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-control" id="nom_prenom" name="nom_prenom" value="{{ contrat.nom_prenom|default:'' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_contrat" class="form-label">تاريخ العقد</label>
+                        <input type="date" class="form-control" id="date_contrat" name="date_contrat" value="{{ contrat.date_contrat|date:"Y-m-d"|default:'' }}" required>
+                    </div>
+                </div>
+
+                <!-- الإيجار الشهري -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="loyer_mensuel_contrat" class="form-label">الإيجار الشهري (العقد)</label>
+                        <input type="number" class="form-control" id="loyer_mensuel_contrat" name="loyer_mensuel_contrat" value="{{ contrat.loyer_mensuel_contrat|default:'' }}" step="0.01" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="loyer_mensuel_plateforme" class="form-label">الإيجار الشهري (المنصة)</label>
+                        <input type="number" class="form-control" id="loyer_mensuel_plateforme" name="loyer_mensuel_plateforme" value="{{ contrat.loyer_mensuel_plateforme|default:'' }}" step="0.01" required>
+                    </div>
+                </div>
+
+                <!-- التواريخ -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="date_debut" class="form-label">تاريخ البداية</label>
+                        <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ contrat.date_debut|date:"Y-m-d"|default:'' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="date_fin" class="form-label">تاريخ النهاية</label>
+                        <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ contrat.date_fin|date:"Y-m-d"|default:'' }}" required>
+                    </div>
+                </div>
+
+                <!-- معلومات الميلاد -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="date_naissance" class="form-label">تاريخ الميلاد</label>
+                        <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="{{ contrat.date_naissance|date:"Y-m-d"|default:'' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="lieu_naissance" class="form-label">مكان الميلاد</label>
+                        <input type="text" class="form-control" id="lieu_naissance" name="lieu_naissance" value="{{ contrat.lieu_naissance|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- بيانات الأب والأم -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="nom_pere" class="form-label">اسم الأب</label>
+                        <input type="text" class="form-control" id="nom_pere" name="nom_pere" value="{{ contrat.nom_pere|default:'' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="nom_mere" class="form-label">اسم الأم</label>
+                        <input type="text" class="form-control" id="nom_mere" name="nom_mere" value="{{ contrat.nom_mere|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- بيانات العنوان والشروط -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="adresse" class="form-label">العنوان</label>
+                        <textarea class="form-control" id="adresse" name="adresse" rows="1">{{ contrat.adresse|default:'' }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="conditions" class="form-label">الشروط</label>
+                        <textarea class="form-control" id="conditions" name="conditions" rows="1">{{ contrat.conditions|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- المهنة -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="profession" class="form-label">المهنة</label>
+                        <input type="text" class="form-control" id="profession" name="profession" value="{{ contrat.profession|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- الأزرار -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> حفظ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

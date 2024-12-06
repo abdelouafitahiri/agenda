@@ -1,0 +1,84 @@
+<div>
+    {% if grouped_payments %}
+    <h4>Services pour le mois sélectionné</h4>
+    <div class="list-group">
+        {% for customer, services in grouped_payments.items %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">{{ customer.raison_sociale }} <small class="text-muted">({{ customer.ville }})</small></h5>
+                    <p class="mb-0 text-muted"><strong>Total Services:</strong> {{ services|length }}</p>
+                </div>
+                <button 
+                    type="button" 
+                    class="btn btn-primary btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modal-{{ customer.id }}">
+                    Voir les Services
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal for customer services -->
+        <div class="modal fade" id="modal-{{ customer.id }}" tabindex="-1" aria-labelledby="modalLabel-{{ customer.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel-{{ customer.id }}">Services pour {{ customer.raison_sociale }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-hover table-bordered">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nom du service</th>
+                                    <th>Date de début</th>
+                                    <th>Date de fin</th>
+                                    <th>Prix (MAD)</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in services %}
+                                <tr class="{% if payment.is_paid %}table-success{% else %}table-danger{% endif %}">
+                                    <td class="text-center">{{ forloop.counter }}</td>
+                                    <td>{{ payment.service.service.libelle }}</td>
+                                    <td class="text-center">{{ payment.service.date_debut|date:"d/m/Y" }}</td>
+                                    <td class="text-center">{{ payment.service.date_fin|date:"d/m/Y" }}</td>
+                                    <td class="text-end">{{ payment.service.prix }}</td>
+                                    <td class="text-center">
+                                        <span class="badge {% if payment.is_paid %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if payment.is_paid %}
+                                                Payé
+                                            {% else %}
+                                                Non payé
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button 
+                                            hx-post="{% url 'payments_view' month year %}" 
+                                            hx-target="#grouped-payments-section" 
+                                            hx-swap="outerHTML" 
+                                            name="payment_action" 
+                                            value="{% if payment.is_paid %}unpay-{{ payment.id }}{% else %}pay-{{ payment.id }}{% endif %}" 
+                                            class="btn {% if payment.is_paid %}btn-warning{% else %}btn-success{% endif %} btn-sm">
+                                            {% if payment.is_paid %}Annuler{% else %}Confirmer{% endif %}
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">Aucune donnée disponible pour le mois sélectionné.</p>
+    {% endif %}
+</div>
