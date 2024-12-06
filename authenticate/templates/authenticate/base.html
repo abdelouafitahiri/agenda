@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-startbar="dark" data-bs-theme="light">
+
+<head>
+    <meta charset="utf-8" />
+    <title>{% block title %}AgendaComptable{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="" name="description" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.onload = () => {
+            navigator.serviceWorker.register(
+                'https://8000-empty-meadow-88609593.in-ws1.runcode.io/static/pwabuilder-sw.js'
+            );
+            }
+        }
+    </script>
+            
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{% static 'web/assets/images/favicon.ico' %}">
+
+    <!-- App css -->
+    <link href="{% static 'web/assets/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'web/assets/css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'web/assets/css/app.min.css' %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.30/"></script>
+  
+</head>
+
+<body>
+
+
+    <!-- Main Content Wrapper -->
+    <div class="page-wrapper">
+        <div class="container-xxl">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="{% static 'assets/libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/libs/simplebar/simplebar.min.js' %}"></script>
+    <script src="{% static 'assets/js/app.js' %}"></script>
+     
+</body>
+</html>
