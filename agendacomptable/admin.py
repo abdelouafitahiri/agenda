@@ -179,13 +179,17 @@ class EDocumentInline(admin.TabularInline):
     extra = 1
 
 
+class ContactInline(admin.TabularInline):
+    model = CustomerFile.contacts.through
+    extra = 1
+
 @admin.register(CustomerFile)
 class CustomerFileAdmin(admin.ModelAdmin):
     list_display = ('raison_sociale', 'regime_tva', 'forme_juridique', 'domiciliation', 'tenue_comptabilite', 'date_creation')
-    inlines = [AssocieInline, CustomerServiceInline, EDocumentInline]
+    inlines = [AssocieInline, CustomerServiceInline, EDocumentInline, ContactInline]
     fieldsets = (
             ('Information Générale', {
-                'fields': ('raison_sociale', 'activite', 'ville', 'adresse', 'email', 'personne_1', 'personne_2', 'telephone')
+                'fields': ('raison_sociale', 'activite', 'ville', 'adresse')
             }),
             ('Informations Juridiques', {
                 'fields': ('regime_tva', 'forme_juridique', 'date_creation', 'ice', 'identifiant_fiscal', 'cnss', 'registre_commerce')
@@ -195,6 +199,7 @@ class CustomerFileAdmin(admin.ModelAdmin):
             }),
         )
 
+    exclude = ('contacts',)
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             obj.user_create = request.user
@@ -202,6 +207,12 @@ class CustomerFileAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+
+
+
+@admin.register(Contact)
+class ContactAdmin(admin.ModelAdmin):
+    list_display = ('nom_complet', 'email', 'telephone')
 
 @admin.register(Month)
 class MonthAdmin(admin.ModelAdmin):
@@ -227,7 +238,7 @@ class PaymentAdmin(admin.ModelAdmin):
 class ContratPersonnePhysiqueAdmin(admin.ModelAdmin):
     list_display = ("nom_prenom", "date_contrat", "loyer_mensuel_contrat", "date_debut", "date_fin")
     search_fields = ("nom_prenom", "date_contrat", "adresse")
-    list_filter = ("date_debut", "date_fin", "profession")
+    list_filter = ("date_debut", "date_fin")
 
 @admin.register(ContratPersonneMorale)
 class ContratPersonneMoraleAdmin(admin.ModelAdmin):
@@ -235,3 +246,5 @@ class ContratPersonneMoraleAdmin(admin.ModelAdmin):
     search_fields = ("nom_representant", "registre_commerce", "customer_file__raison_sociale")
     list_filter = ("date_contrat", "date_debut", "date_fin")
     readonly_fields = ("cree_le", "mis_a_jour_le")  # Ensure these fields exist in the model
+
+

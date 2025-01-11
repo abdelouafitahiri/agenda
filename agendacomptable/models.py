@@ -191,7 +191,7 @@ def create_qualites(sender, **kwargs):
     ]
     
     for qualite in qualites:
-        if not Qualite.objects.filter(libelle=qualiste).exists():
+        if not Qualite.objects.filter(libelle=qualite).exists():  # Corrected 'qualiste' to 'qualite'
             Qualite.objects.create(
                 libelle=qualite,
                 is_archived=False
@@ -291,15 +291,21 @@ class Comptable(models.Model):
     def __str__(self):
         return f"{self.lib_08} - {self.contact_08}"
 
+class Contact(models.Model):
+    nom_complet = models.CharField(max_length=100, verbose_name="Nom Complet", null=True, blank=True)
+    email = models.EmailField(max_length=100, verbose_name="E-Mail", null=True, blank=True)
+    telephone = models.CharField(max_length=15, verbose_name="Téléphone", null=True, blank=True)
+
+    def __str__(self):
+        return self.nom_complet or "Contact Inconnu"
+
 class CustomerFile(models.Model):
     raison_sociale = models.CharField(max_length=70, verbose_name="Raison Sociale")
     activite = models.CharField(max_length=100, verbose_name="Activité")
     ville = models.CharField(max_length=45, verbose_name="Ville")
     adresse = models.TextField(verbose_name="Adresse")
     email = models.EmailField(max_length=100, verbose_name="E-Mail")
-    personne_1 = models.CharField(max_length=45, verbose_name="Personne 1", null=True, blank=True)
-    personne_2 = models.CharField(max_length=45, verbose_name="Personne 2", null=True, blank=True)
-    telephone = models.CharField(max_length=15, verbose_name="Téléphone", null=True, blank=True)
+    contacts = models.ManyToManyField('Contact', related_name="customer_files", verbose_name="Contacts", blank=True)
     regime_tva = models.ForeignKey('Regime', on_delete=models.SET_NULL, null=True)
     forme_juridique = models.ForeignKey('FormeJuridique', on_delete=models.SET_NULL, null=True)
     date_creation = models.DateField(null=True)
@@ -339,7 +345,6 @@ class Associe(models.Model):
     datn = models.DateField(verbose_name="Date de Naissance", null=True, blank=True)
     cine = models.CharField(max_length=45, verbose_name="CIN", null=True, blank=True)
     adresse = models.CharField(max_length=45, verbose_name="Adresse", null=True, blank=True)
-    profession = models.CharField(max_length=35, verbose_name="Profession", null=True, blank=True)
     parts = models.IntegerField(verbose_name="Parts", null=True, blank=True)
     montant = models.FloatField(verbose_name="Montant", null=True, blank=True)
     user_create = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Créé par")
@@ -424,11 +429,7 @@ class ContratPersonnePhysique(models.Model):
     date_debut = models.DateField(verbose_name="Date de Début")
     date_fin = models.DateField(verbose_name="Date de Fin")
     date_naissance = models.DateField(null=True, blank=True, verbose_name="Date de Naissance")
-    lieu_naissance = models.CharField(max_length=255, null=True, blank=True, verbose_name="Lieu de Naissance")
-    nom_pere = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nom du Père")
-    nom_mere = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nom de la Mère")
     adresse = models.TextField(null=True, blank=True, verbose_name="Adresse")
-    profession = models.CharField(max_length=255, null=True, blank=True, verbose_name="Profession")
     conditions = models.TextField(null=True, blank=True, verbose_name="Conditions")
     date_contrat = models.DateField(verbose_name="Date du Contrat")
 
@@ -447,14 +448,11 @@ class ContratPersonneMorale(models.Model):
     nom_representant = models.CharField(max_length=255, verbose_name="Nom complet du représentant légal")
     cin_representant = models.CharField(max_length=50, verbose_name="CIN du représentant légal")
     date_naissance_representant = models.DateField(null=True, blank=True, verbose_name="Date de naissance du représentant légal")
-    lieu_naissance_representant = models.CharField(max_length=255, null=True, blank=True, verbose_name="Lieu de naissance du représentant légal")
-    nom_pere_representant = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nom du père du représentant")
-    nom_mere_representant = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nom de la mère du représentant")
+    adresse = models.TextField(null=True, blank=True, verbose_name="Adresse")
     loyer_mensuel_contrat = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Loyer mensuel (contrat)")
     loyer_mensuel_plateforme = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Loyer mensuel (plateforme)")
     date_debut = models.DateField(verbose_name="Date de début")
     date_fin = models.DateField(verbose_name="Date de fin")
-    conditions = models.TextField(null=True, blank=True, verbose_name="Conditions du contrat")
     date_contrat = models.DateField(verbose_name="Date du contrat")
     periode_renouvellement = models.CharField(max_length=50, null=True, blank=True, verbose_name="Période de renouvellement")
     cree_le = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
