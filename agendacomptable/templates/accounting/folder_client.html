@@ -89,36 +89,36 @@
                     </div>
 
                     <!-- Step 2: Contact Information -->
-                    <div class="tab-pane" id="step2">
-                        <h5 class="my-4">Informations de Contact</h5>
-                        <!-- زر إضافة جهات الاتصال في الأعلى على اليمين -->
-                        <div class="text-end mb-3">
-                            <button type="button" id="add-contact" class="btn btn-success">Ajouter un Contact</button>
-                        </div>
-                        <div id="contact-container">
-                            <!-- حقل إدخال اتصال ديناميكي -->
-                            <div class="contact-item row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Nom Complet</label>
-                                    <input type="text" class="form-control" name="nom_complet[]" placeholder="Nom Complet">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">E-Mail</label>
-                                    <input type="email" class="form-control" name="email[]" placeholder="E-Mail">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Téléphone</label>
-                                    <input type="text" class="form-control" name="telephone[]" placeholder="Téléphone">
-                                </div>
-                                <!-- زر الحذف -->
-                                <div class="col-md-1 d-flex align-items-center">
-                                    <button type="button" class="btn btn-danger remove-contact">X</button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" id="step2Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
-                        <button type="submit" class="btn btn-primary float-end mt-3">Suivant</button>
-                    </div>
+<div class="tab-pane" id="step2">
+    <h5 class="my-4">Informations de Contact</h5>
+    <!-- زر إضافة جهات الاتصال في الأعلى على اليمين -->
+    <div class="text-end mb-3">
+        <button type="button" id="add-contact" class="btn btn-success">Ajouter un Contact</button>
+    </div>
+    <div id="contact-container">
+        <!-- حقل إدخال اتصال ديناميكي -->
+        <div class="contact-item row mb-3 d-flex align-items-center">
+            <div class="col-md-4">
+                <label class="form-label">Nom Complet</label>
+                <input type="text" class="form-control" name="nom_complet[]" placeholder="Nom Complet">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">E-Mail</label>
+                <input type="email" class="form-control" name="email[]" placeholder="E-Mail">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Téléphone</label>
+                <input type="text" class="form-control" name="telephone[]" placeholder="Téléphone">
+            </div>
+            <!-- زر الحذف -->
+            <div class="col-md-1 d-flex justify-content-center">
+                <button type="button" class="btn btn-danger remove-contact">X</button>
+            </div>
+        </div>
+    </div>
+    <button type="button" id="step2Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+    <button type="submit" class="btn btn-primary float-end mt-3">Suivant</button>
+</div>
 
 
                     <script>
