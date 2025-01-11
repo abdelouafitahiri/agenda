@@ -739,55 +739,51 @@ def folder_client(request):
                 registre_commerce=registre_commerce,
                 cnss=cnss,
                 ice=ice,
-                date_creation=date_creation,
+                date_creation=parse_date(date_creation),
                 domiciliation=domiciliation,
                 tenue_comptabilite=tenue_comptabilite,
                 cabinet_comptable_id=cabinet_comptable,
-                date_reception_dossier=date_reception_dossier,
+                date_reception_dossier=parse_date(date_reception_dossier),
             )
             messages.success(request, "Le dossier client a été créé avec succès !")
 
             # Enregistrement des services si "Tenue Comptabilité" est activé
             if tenue_comptabilite:
-                services_ids = request.POST.getlist('service_id[]')  # تأكد من الاسم
+                services_ids = request.POST.getlist('service_id[]')
                 services_prix = request.POST.getlist('service_prix[]')
                 services_date_debut = request.POST.getlist('service_date_debut[]')
                 services_date_fin = request.POST.getlist('service_date_fin[]')
 
-                if not services_ids:
-                    print("Aucun service n'a été ajouté.")
-                else:
-                    for i in range(len(services_ids)):
-                        try:
-                            service = Service.objects.get(id=services_ids[i])
-                            CustomerService.objects.create(
-                                customer_file=customer_file,
-                                service=service,
-                                prix=services_prix[i],
-                                date_debut=services_date_debut[i],
-                                date_fin=services_date_fin[i],
-                            )
-                        except Service.DoesNotExist:
-                            print(f"Service ID {services_ids[i]} introuvable. Ignoré.")
+                for i in range(len(services_ids)):
+                    try:
+                        service = Service.objects.get(id=services_ids[i])
+                        CustomerService.objects.create(
+                            customer_file=customer_file,
+                            service=service,
+                            prix=services_prix[i],
+                            date_debut=parse_date(services_date_debut[i]),
+                            date_fin=parse_date(services_date_fin[i]),
+                        )
+                    except Service.DoesNotExist:
+                        print(f"Service ID {services_ids[i]} introuvable. Ignoré.")
 
             # Enregistrement de la service "Domiciliation" si activé
             if domiciliation:
                 domiciliation_service, _ = Service.objects.get_or_create(
                     libelle="Domiciliation",
-                    defaults={"prix": 0.0}  # السعر الافتراضي
+                    defaults={"prix": 0.0}
                 )
                 domiciliation_prix = request.POST.get('domiciliation_prix', domiciliation_service.prix)
                 domiciliation_date_debut = request.POST.get('domiciliation_date_debut', date_creation)
-                domiciliation_date_fin = request.POST.get('domiciliation_date_fin') or None  # تعيين None إذا كان فارغًا
+                domiciliation_date_fin = request.POST.get('domiciliation_date_fin') or None
 
                 CustomerService.objects.create(
                     customer_file=customer_file,
                     service=domiciliation_service,
                     prix=domiciliation_prix,
-                    date_debut=domiciliation_date_debut,
-                    date_fin=domiciliation_date_fin,
+                    date_debut=parse_date(domiciliation_date_debut),
+                    date_fin=parse_date(domiciliation_date_fin),
                 )
-
 
             # Enregistrement des documents électroniques
             files = request.FILES.getlist('document_file[]')
@@ -815,23 +811,21 @@ def folder_client(request):
                         customer_file=customer_file,
                         nom=noms[index],
                         prenom=prenoms[index],
-                        datn=datns[index] if index < len(datns) and datns[index] else None,
+                        datn=parse_date(datns[index]) if index < len(datns) and datns[index] else None,
                         cine=cines[index] if index < len(cines) else "",
                         adresse=adresses[index] if index < len(adresses) else "",
                         profession=professions[index] if index < len(professions) else "",
                         parts=int(parts[index]) if index < len(parts) and parts[index] else 0,
                         montant=float(montants[index]) if index < len(montants) and montants[index] else 0.0,
-                        user_create=request.user,  # Utilise l'utilisateur connecté
+                        user_create=request.user,
                     )
             messages.success(request, f"{len(noms)} associé(s) ont été enregistré(s) avec succès !")
 
             # Gestion des contrats
             type_contrat = request.POST.get('type_contrat')
-            print(type_contrat)
             if type_contrat == 'personne_physique':
-                # Traitement des données spécifiques à personne physique
-                loyer_mensuel_contrat_morale = request.POST.get('loyer_mensuel_contrat_physique')
-                loyer_mensuel_plateforme_morale = request.POST.get('loyer_mensuel_plateforme_physique')
+                loyer_mensuel_contrat_physique = request.POST.get('loyer_mensuel_contrat_physique')
+                loyer_mensuel_plateforme_physique = request.POST.get('loyer_mensuel_plateforme_physique')
                 date_debut_physique = parse_date(request.POST.get('date_debut_physique'))
                 date_fin_physique = parse_date(request.POST.get('date_fin_physique'))
                 date_naissance_physique = parse_date(request.POST.get('date_naissance_physique'))
@@ -840,8 +834,8 @@ def folder_client(request):
                 ContratPersonnePhysique.objects.create(
                     customer_file=customer_file,
                     nom_prenom=request.POST.get('nom_prenom'),
-                    loyer_mensuel_contrat=loyer_mensuel_contrat_morale,
-                    loyer_mensuel_plateforme=loyer_mensuel_plateforme_morale,
+                    loyer_mensuel_contrat=loyer_mensuel_contrat_physique,
+                    loyer_mensuel_plateforme=loyer_mensuel_plateforme_physique,
                     date_debut=date_debut_physique,
                     date_fin=date_fin_physique,
                     date_naissance=date_naissance_physique,
@@ -850,13 +844,11 @@ def folder_client(request):
                     nom_mere=request.POST.get('nom_mere_physique'),
                     adresse=request.POST.get('adresse_physique'),
                     profession=request.POST.get('profession_physique'),
-                    conditions=request.POST.get('conditions_physique'),
                     date_contrat=date_contrat_physique,
                 )
                 messages.success(request, "Le contrat pour une personne physique a été enregistré avec succès !")
-           
+
             elif type_contrat == 'personne_morale':
-                # Traitement des données spécifiques à personne morale
                 loyer_mensuel_contrat_morale = request.POST.get('loyer_mensuel_contrat_morale')
                 loyer_mensuel_plateforme_morale = request.POST.get('loyer_mensuel_plateforme_morale')
                 date_debut_morale = parse_date(request.POST.get('date_debut'))

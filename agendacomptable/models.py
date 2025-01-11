@@ -430,7 +430,6 @@ class ContratPersonnePhysique(models.Model):
     date_fin = models.DateField(verbose_name="Date de Fin")
     date_naissance = models.DateField(null=True, blank=True, verbose_name="Date de Naissance")
     adresse = models.TextField(null=True, blank=True, verbose_name="Adresse")
-    conditions = models.TextField(null=True, blank=True, verbose_name="Conditions")
     date_contrat = models.DateField(verbose_name="Date du Contrat")
 
     def __str__(self):

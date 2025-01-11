@@ -91,23 +91,71 @@
                     <!-- Step 2: Contact Information -->
                     <div class="tab-pane" id="step2">
                         <h5 class="my-4">Informations de Contact</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="personne_1" class="form-label">Personne 1</label>
-                                <input type="text" class="form-control" id="personne_1" name="personne_1">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="personne_2" class="form-label">Personne 2</label>
-                                <input type="text" class="form-control" id="personne_2" name="personne_2">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="telephone" class="form-label">Téléphone</label>
-                                <input type="text" class="form-control" id="telephone" name="telephone">
+                        <!-- زر إضافة جهات الاتصال في الأعلى على اليمين -->
+                        <div class="text-end mb-3">
+                            <button type="button" id="add-contact" class="btn btn-success">Ajouter un Contact</button>
+                        </div>
+                        <div id="contact-container">
+                            <!-- حقل إدخال اتصال ديناميكي -->
+                            <div class="contact-item row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Nom Complet</label>
+                                    <input type="text" class="form-control" name="nom_complet[]" placeholder="Nom Complet">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">E-Mail</label>
+                                    <input type="email" class="form-control" name="email[]" placeholder="E-Mail">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Téléphone</label>
+                                    <input type="text" class="form-control" name="telephone[]" placeholder="Téléphone">
+                                </div>
+                                <!-- زر الحذف -->
+                                <div class="col-md-1 d-flex align-items-center">
+                                    <button type="button" class="btn btn-danger remove-contact">X</button>
+                                </div>
                             </div>
                         </div>
                         <button type="button" id="step2Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
-                        <button type="button" id="step2Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                        <button type="submit" class="btn btn-primary float-end mt-3">Suivant</button>
                     </div>
+
+
+                    <script>
+                        // إضافة جهة اتصال جديدة
+                        document.getElementById('add-contact').addEventListener('click', function() {
+                            const container = document.getElementById('contact-container');
+                            const newContact = document.createElement('div');
+                            newContact.className = 'contact-item row mb-3';
+                            newContact.innerHTML = `
+                                <div class="col-md-4">
+                                    <label class="form-label">Nom Complet</label>
+                                    <input type="text" class="form-control" name="nom_complet[]" placeholder="Nom Complet">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">E-Mail</label>
+                                    <input type="email" class="form-control" name="email[]" placeholder="E-Mail">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Téléphone</label>
+                                    <input type="text" class="form-control" name="telephone[]" placeholder="Téléphone">
+                                </div>
+                                <div class="col-md-1 d-flex align-items-center">
+                                    <button type="button" class="btn btn-danger remove-contact">X</button>
+                                </div>
+                            `;
+                            container.appendChild(newContact);
+                        });
+                    
+                        // حذف جهة اتصال
+                        document.getElementById('contact-container').addEventListener('click', function(e) {
+                            if (e.target.classList.contains('remove-contact')) {
+                                const contactItem = e.target.closest('.contact-item');
+                                contactItem.remove();
+                            }
+                        });
+                    </script>
+                    
 
                     <!-- Step 3: Fiscal and Legal Information -->
                     <div class="tab-pane" id="step3">
@@ -560,11 +608,7 @@
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <div class="col-md-6">
-                                                <label for="associe_profession" class="form-label">Profession</label>
-                                                <input type="text" class="form-control" id="associe_profession" name="associe_profession">
-                                            </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-12">
                                                 <label for="associe_qualite" class="form-label">Qualité</label>
                                                 <select class="form-control" id="associe_qualite" name="associe_qualite">
                                                     <option value="">Sélectionner</option>
@@ -604,7 +648,6 @@
                             const datn = document.getElementById('associe_datn').value; // تاريخ الميلاد
                             const cine = document.getElementById('associe_cine').value; // CIN
                             const adresse = document.getElementById('associe_adresse').value; // العنوان
-                            const profession = document.getElementById('associe_profession').value; // الوظيفة
                             const parts = document.getElementById('associe_parts').value;
                             const montant = document.getElementById('associe_montant').value;
                         
@@ -637,7 +680,6 @@
                             document.getElementById('associe_datn').value = '';
                             document.getElementById('associe_cine').value = '';
                             document.getElementById('associe_adresse').value = '';
-                            document.getElementById('associe_profession').value = '';
                             document.getElementById('associe_parts').value = '';
                             document.getElementById('associe_montant').value = '';
                         
@@ -769,7 +811,7 @@
                     <!-- Step 7: Gestion des Contrats -->
 
                     <div class="tab-pane" id="step7">
-                        <h5 class="my-4">Gestion des Contrats</h5>
+                        <h5 class="my-4">Gestion du contrat de domiciliation</h5>
                     
                         <!-- Choix du type de contrat -->
                         <div class="row mb-3">
@@ -836,43 +878,16 @@
                                         <label for="date_naissance_physique" class="form-label">تاريخ الميلاد</label>
                                         <input type="date" class="form-control" id="date_naissance_physique" name="date_naissance_physique" value="{{ contrat.date_naissance|date:'Y-m-d'|default:'' }}">
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="lieu_naissance_physique" class="form-label">مكان الميلاد</label>
-                                        <input type="text" class="form-control" id="lieu_naissance_physique" name="lieu_naissance_physique" value="{{ contrat.lieu_naissance|default:'' }}">
-                                    </div>
                                 </div>
                     
-                                <!-- بيانات الأب والأم -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="nom_pere_physique" class="form-label">اسم الأب</label>
-                                        <input type="text" class="form-control" id="nom_pere_physique" name="nom_pere_physique" value="{{ contrat.nom_pere|default:'' }}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="nom_mere_physique" class="form-label">اسم الأم</label>
-                                        <input type="text" class="form-control" id="nom_mere_physique" name="nom_mere_physique" value="{{ contrat.nom_mere|default:'' }}">
-                                    </div>
-                                </div>
-                    
-                                <!-- بيانات العنوان والشروط -->
+                                <!-- بيانات العنوان -->
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="adresse_physique" class="form-label">العنوان</label>
                                         <textarea class="form-control" id="adresse_physique" name="adresse_physique" rows="1">{{ contrat.adresse|default:'' }}</textarea>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="conditions_physique" class="form-label">الشروط</label>
-                                        <textarea class="form-control" id="conditions_physique" name="conditions_physique" rows="1">{{ contrat.conditions|default:'' }}</textarea>
-                                    </div>
-                                </div>
-                    
-                                <!-- المهنة -->
-                                <div class="row mb-3">
-                                    <div class="col-md-12">
-                                        <label for="profession_physique" class="form-label">الصفة و المهنة</label>
-                                        <input type="text" class="form-control" id="profession_physique" name="profession_physique" value="{{ contrat.profession|default:'' }}">
-                                    </div>
-                                </div>
+                                </div>                    
+                                
                            
                         </div>
                     
@@ -890,10 +905,6 @@
                                     <div class="col-md-6">
                                         <label for="date_contrat" class="form-label">تاريخ العقد</label>
                                         <input type="date" class="form-control" id="date_contrat" name="date_contrat" value="{{ contrat.date_contrat|date:'Y-m-d'|default:'' }}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="conditions" class="form-label">الشروط</label>
-                                        <input type="text" class="form-control" id="conditions" name="conditions" value="{{ contrat.conditions|default:'' }}">
                                     </div>
                                 </div>
                             
@@ -939,36 +950,8 @@
                                         <label for="date_naissance_representant" class="form-label">تاريخ الميلاد</label>
                                         <input type="date" class="form-control" id="date_naissance_representant" name="date_naissance_representant" value="{{ contrat.date_naissance_representant|date:'Y-m-d'|default:'' }}">
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="lieu_naissance_representant" class="form-label">مكان الميلاد</label>
-                                        <input type="text" class="form-control" id="lieu_naissance_representant" name="lieu_naissance_representant" value="{{ contrat.lieu_naissance_representant|default:'' }}">
-                                    </div>
-                                </div>
-                            
-                                <!-- معلومات الوالدين -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="nom_pere_representant" class="form-label">اسم الأب</label>
-                                        <input type="text" class="form-control" id="nom_pere_representant" name="nom_pere_representant" value="{{ contrat.nom_pere_representant|default:'' }}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="nom_mere_representant" class="form-label">اسم الأم</label>
-                                        <input type="text" class="form-control" id="nom_mere_representant" name="nom_mere_representant" value="{{ contrat.nom_mere_representant|default:'' }}">
-                                    </div>
-                                </div>
-                            
-                                <!-- الحقول الإضافية -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="profession" class="form-label">الصفة</label>
-                                        <input type="text" class="form-control" id="profession" name="profession" value="{{ contrat.profession|default:'' }}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="fonction" class="form-label">المهنة</label>
-                                        <input type="text" class="form-control" id="fonction" name="fonction" value="{{ contrat.fonction|default:'' }}">
-                                    </div>
-                                </div>
-                            
+                                </div>                            
+                                
                         </div>
                         
                     
