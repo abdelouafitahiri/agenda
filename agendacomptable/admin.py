@@ -162,57 +162,76 @@ class ComptableAdmin(admin.ModelAdmin):
         }),
     )
 
-
 class AssocieInline(admin.TabularInline):
     model = Associe
     extra = 1
+    verbose_name = "Associé"
+    verbose_name_plural = "Associés"
+
 
 class CustomerServiceInline(admin.TabularInline):
     model = CustomerService
     extra = 1
     fields = ('service', 'prix', 'date_debut', 'date_fin')
-    verbose_name = "Customer Service"
-    verbose_name_plural = "Customer Services"
+    verbose_name = "Service Client"
+    verbose_name_plural = "Services Clients"
+
 
 class EDocumentInline(admin.TabularInline):
     model = EDocument
     extra = 1
+    verbose_name = "Document Électronique"
+    verbose_name_plural = "Documents Électroniques"
 
 
 class ContactInline(admin.TabularInline):
-    model = CustomerFile.contacts.through
+    model = Contact
+    extra = 1
+    verbose_name = "Contact"
+    verbose_name_plural = "Contacts"
+
+
+class FiscalRegimeInline(admin.TabularInline):
+    model = FiscalRegime
     extra = 1
 
-@admin.register(CustomerFile)
-class CustomerFileAdmin(admin.ModelAdmin):
-    list_display = ('raison_sociale', 'regime_tva', 'forme_juridique', 'domiciliation', 'tenue_comptabilite', 'date_creation')
-    inlines = [AssocieInline, CustomerServiceInline, EDocumentInline, ContactInline]
+
+class FiscalRegimeAdmin(admin.ModelAdmin):
+    list_display = ('type', 'option', 'tva_period', 'customer_file')
+    search_fields = ('type', 'option', 'tva_period')
+    list_filter = ('tva_period',)  # Filter by TVA period
     fieldsets = (
-            ('Information Générale', {
-                'fields': ('raison_sociale', 'activite', 'ville', 'adresse')
-            }),
-            ('Informations Juridiques', {
-                'fields': ('regime_tva', 'forme_juridique', 'date_creation', 'ice', 'identifiant_fiscal', 'cnss', 'registre_commerce')
-            }),
-            ('Options de Service', {
-                'fields': ('domiciliation', 'tenue_comptabilite', 'cabinet_comptable', 'date_reception_dossier')
-            }),
-        )
+        ('Informations de Régime Fiscal', {
+            'fields': ('type', 'option', 'tva_period', 'customer_file')
+        }),
+    )
 
-    exclude = ('contacts',)
-    def save_model(self, request, obj, form, change):
-        if not obj.pk:
-            obj.user_create = request.user
-        obj.user_edit = request.user
-        super().save_model(request, obj, form, change)
-
-
+admin.site.register(FiscalRegime, FiscalRegimeAdmin)
 
 
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    list_display = ('nom_complet', 'email', 'telephone')
+    list_display = ('nom_complet', 'email', 'telephone', 'customer_file', 'date_create', 'date_edit')
+    search_fields = ('nom_complet', 'email', 'telephone')
+    list_filter = ('customer_file', 'date_create', 'date_edit')
+    readonly_fields = ('date_create', 'date_edit')
+
+    fieldsets = (
+        ('Information Générale', {
+            'fields': ('customer_file', 'nom_complet', 'email', 'telephone')
+        }),
+        ('Audit Information', {
+            'fields': ('user_create', 'date_create', 'date_edit')
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:  # If the object is being created
+            obj.user_create = request.user
+        obj.user_edit = request.user  # Set the user who last edited
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(Month)
 class MonthAdmin(admin.ModelAdmin):
@@ -248,3 +267,64 @@ class ContratPersonneMoraleAdmin(admin.ModelAdmin):
     readonly_fields = ("cree_le", "mis_a_jour_le")  # Ensure these fields exist in the model
 
 
+
+
+class ContratPersonnePhysiqueInline(admin.TabularInline):
+    model = ContratPersonnePhysique
+    extra = 1  # عدد النماذج الفارغة التي تظهر عند إضافة جديد
+    fields = ('nom_prenom', 'loyer_mensuel_contrat', 'loyer_mensuel_plateforme', 'date_debut', 'date_fin', 'date_contrat')
+
+class ContratPersonneMoraleInline(admin.TabularInline):
+    model = ContratPersonneMorale
+    extra = 1  # عدد النماذج الفارغة التي تظهر عند إضافة جديد
+    fields = ('registre_commerce', 'nom_representant', 'loyer_mensuel_contrat', 'loyer_mensuel_plateforme', 'date_debut', 'date_fin', 'date_contrat')
+
+@admin.register(CustomerFile)
+class CustomerFileAdmin(admin.ModelAdmin):
+    list_display = (
+        'raison_sociale', 
+        'forme_juridique', 
+        'domiciliation', 
+        'tenue_comptabilite', 
+        'date_creation', 
+        'ice', 
+        'identifiant_fiscal', 
+        'cnss', 
+        'registre_commerce', 
+        'cabinet_comptable', 
+        'date_reception_dossier', 
+        'user_create', 
+        'user_edit', 
+        'is_archived'
+    )
+    list_filter = ('forme_juridique', 'ville', 'is_archived', 'tenue_comptabilite')  # إضافة الفلاتر
+    search_fields = ('raison_sociale', 'ice', 'identifiant_fiscal', 'registre_commerce')  # الحقول القابلة للبحث
+    inlines = [FiscalRegimeInline, ContactInline, AssocieInline, CustomerServiceInline, EDocumentInline, ContratPersonnePhysiqueInline, ContratPersonneMoraleInline]  # إضافة Inlines الخاصة بالعقود
+
+    fieldsets = (
+        ('Informations Générales', {
+            'fields': ('raison_sociale', 'activite', 'ville', 'adresse', 'forme_juridique', 'date_creation')
+        }),
+        ('Informations Juridiques et Fiscales', {
+            'fields': (
+                'ice', 
+                'identifiant_fiscal', 
+                'cnss', 
+                'registre_commerce'
+            )
+        }),
+        ('Services et Comptabilité', {
+            'fields': ('domiciliation', 'tenue_comptabilite', 'cabinet_comptable', 'date_reception_dossier')
+        }),
+        ('Informations Système', {
+            'fields': ('user_create', 'user_edit', 'is_archived')
+        }),
+    )
+
+    exclude = ('date_create', 'date_edit')
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:  # Lors de la création
+            obj.user_create = request.user
+        obj.user_edit = request.user  # Dernier utilisateur ayant modifié l'objet
+        super().save_model(request, obj, form, change)

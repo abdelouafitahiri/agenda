@@ -89,40 +89,36 @@
                     </div>
 
                     <!-- Step 2: Contact Information -->
-<div class="tab-pane" id="step2">
-    <h5 class="my-4">Informations de Contact</h5>
-    <!-- زر إضافة جهات الاتصال في الأعلى على اليمين -->
-    <div class="text-end mb-3">
-        <button type="button" id="add-contact" class="btn btn-success">Ajouter un Contact</button>
-    </div>
-    <div id="contact-container">
-        <!-- حقل إدخال اتصال ديناميكي -->
-        <div class="contact-item row mb-3 d-flex align-items-center">
-            <div class="col-md-4">
-                <label class="form-label">Nom Complet</label>
-                <input type="text" class="form-control" name="nom_complet[]" placeholder="Nom Complet">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">E-Mail</label>
-                <input type="email" class="form-control" name="email[]" placeholder="E-Mail">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Téléphone</label>
-                <input type="text" class="form-control" name="telephone[]" placeholder="Téléphone">
-            </div>
-            <!-- زر الحذف -->
-            <div class="col-md-1 d-flex justify-content-center">
-                <button type="button" class="btn btn-danger remove-contact">X</button>
-            </div>
-        </div>
-    </div>
-    <button type="button" id="step2Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
-    <button type="submit" class="btn btn-primary float-end mt-3">Suivant</button>
-</div>
+                    <div class="tab-pane" id="step2">
+                        <h5 class="my-4">Informations de Contact</h5>
+                        <div class="text-end mb-3">
+                            <button type="button" id="add-contact" class="btn btn-primary mt-3">Ajouter un Contact</button>
+                        </div>
+                        <div id="contact-container">
+                            <div class="contact-item row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Nom Complet</label>
+                                    <input type="text" class="form-control" name="nom_complet[]" placeholder="Nom Complet">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">E-Mail</label>
+                                    <input type="email" class="form-control" name="email[]" placeholder="E-Mail">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Téléphone</label>
+                                    <input type="text" class="form-control" name="telephone[]" placeholder="Téléphone">
+                                </div>
+                                <div class="col-md-1 d-flex align-self-end">
+                                    <button type="button" class="btn btn-danger remove-contact">X</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="step2Prev" class="btn btn-secondary float-start mt-3">Précédent</button>
+                        <button type="submit" id="step2Next" class="btn btn-primary float-end mt-3">Suivant</button>
+                    </div>
 
 
                     <script>
-                        // إضافة جهة اتصال جديدة
                         document.getElementById('add-contact').addEventListener('click', function() {
                             const container = document.getElementById('contact-container');
                             const newContact = document.createElement('div');
@@ -140,14 +136,13 @@
                                     <label class="form-label">Téléphone</label>
                                     <input type="text" class="form-control" name="telephone[]" placeholder="Téléphone">
                                 </div>
-                                <div class="col-md-1 d-flex align-items-center">
+                                <div class="col-md-1 d-flex align-self-end">
                                     <button type="button" class="btn btn-danger remove-contact">X</button>
                                 </div>
                             `;
                             container.appendChild(newContact);
                         });
                     
-                        // حذف جهة اتصال
                         document.getElementById('contact-container').addEventListener('click', function(e) {
                             if (e.target.classList.contains('remove-contact')) {
                                 const contactItem = e.target.closest('.contact-item');
@@ -195,6 +190,7 @@
                         </div>
 
                         <!-- Section to Add Fiscal Services -->
+                        <!-- Section to Add Fiscal Services -->
                         <div id="fiscal_services_container">
                             <h5 class="mt-4">REGIME D'IMPOSITION</h5>
                             <div id="fiscal_services_list">
@@ -204,6 +200,7 @@
                                 <i class="las la-plus"></i> Ajouter un Régime
                             </button>
                         </div>
+
 
                         <!-- Navigation Buttons -->
                         <div class="d-flex justify-content-between mt-4">
@@ -215,14 +212,17 @@
                             </button>
                         </div>
                     </div>
+                                     
+                    
+                                        
+                    
                     <script>
-                        // قائمة لتتبع الخيارات المضافة حاليًا
+                        // Set to track selected services
                         const selectedServices = new Set();
-                    
+
                         document.getElementById('add_service').addEventListener('click', function () {
-                            // Container where new service will be added
                             const servicesList = document.getElementById('fiscal_services_list');
-                    
+
                             // Create a new service form group
                             const newService = document.createElement('div');
                             newService.className = 'mb-3 border p-3 rounded';
@@ -257,33 +257,32 @@
                                     </div>
                                 </div>
                             `;
-                    
-                            // Append new service to the list
+
                             servicesList.appendChild(newService);
-                    
-                            // Add event listener to the remove button
+
+                            // Add event listener to remove button
                             newService.querySelector('.remove_service').addEventListener('click', function () {
                                 const selectedService = newService.querySelector('.service_type').value;
                                 if (selectedService) {
-                                    selectedServices.delete(selectedService); // Remove from selected services
+                                    selectedServices.delete(selectedService);
                                 }
                                 newService.remove();
                             });
-                    
+
                             // Handle service type change dynamically
                             const serviceType = newService.querySelector('.service_type');
                             const serviceOption = newService.querySelector('.service_option');
                             const tvaPeriodRow = newService.querySelector('.tva_period_row');
-                    
+
                             serviceType.addEventListener('change', function () {
-                                // إذا كان هناك خيار جديد مختار، أضفه إلى المجموعة وتحديث الخيارات
+                                // Update selected services
                                 if (this.value) {
                                     selectedServices.add(this.value);
                                 }
-                    
+
                                 serviceOption.innerHTML = ''; // Clear previous options
                                 tvaPeriodRow.style.display = 'none'; // Hide TVA period by default
-                    
+
                                 if (this.value === 'TVA') {
                                     serviceOption.innerHTML = `
                                         <option value="">Sélectionner une option</option>
@@ -311,8 +310,7 @@
                                 }
                             });
                         });
-                    
-                        // وظيفة لتوليد الخيارات بناءً على الخيارات غير المحددة
+
                         function generateOptions() {
                             const allOptions = ['TVA', 'IR', 'IS'];
                             return allOptions
@@ -320,10 +318,8 @@
                                 .map(option => `<option value="${option}">${option}</option>`)
                                 .join('');
                         }
-                    </script>                    
-                    
-                                        
-                    
+                    </script>
+
                     <!-- Step 4: Options -->
                     <div class="tab-pane" id="step4">
                         <h5 class="my-4">Options de Domiciliation et Comptabilité</h5>
@@ -414,7 +410,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <label for="prix" class="form-label">Prix</label>
-                                            <input type="number" class="form-control" id="prix" name="prix" value="" step="0.01" readonly>
+                                            <input type="number" class="form-control" id="prix" name="prix" value="" step="0.01">
                                         </div>
                                     </div>
                                     <div class="row mb-3">
@@ -643,13 +639,13 @@
 
                     <script>
                         function addAssocie() {
-                            const nom = document.getElementById('associe_nom').value;
-                            const prenom = document.getElementById('associe_prenom').value;
-                            const datn = document.getElementById('associe_datn').value; // تاريخ الميلاد
-                            const cine = document.getElementById('associe_cine').value; // CIN
-                            const adresse = document.getElementById('associe_adresse').value; // العنوان
-                            const parts = document.getElementById('associe_parts').value;
-                            const montant = document.getElementById('associe_montant').value;
+                            const nom = document.getElementById('associe_nom').value.trim();
+                            const prenom = document.getElementById('associe_prenom').value.trim();
+                            const datn = document.getElementById('associe_datn').value.trim(); // تاريخ الميلاد
+                            const cine = document.getElementById('associe_cine').value.trim(); // CIN
+                            const adresse = document.getElementById('associe_adresse').value.trim(); // العنوان
+                            const parts = document.getElementById('associe_parts').value.trim();
+                            const montant = document.getElementById('associe_montant').value.trim();
                         
                             // تحقق من الحقول المطلوبة
                             if (!nom || !prenom || !parts || !montant) {
@@ -657,24 +653,34 @@
                                 return;
                             }
                         
-                            // أضف الصف الجديد إلى الجدول
                             const addedAssociesContainer = document.getElementById('addedAssociesContainer');
                             const associeRow = `
                                 <tr>
                                     <td><input type="text" class="form-control form-control-sm" name="associe_nom[]" value="${nom}" readonly></td>
                                     <td><input type="text" class="form-control form-control-sm" name="associe_prenom[]" value="${prenom}" readonly></td>
+                                    <td style="display: none;"><input type="text" name="associe_datn[]" value="${datn}" readonly></td> <!-- تاريخ الميلاد مخفي -->
+                                    <td style="display: none;"><input type="text" name="associe_adresse[]" value="${adresse}" readonly></td> <!-- العنوان مخفي -->
                                     <td><input type="text" class="form-control form-control-sm" name="associe_cine[]" value="${cine}" readonly></td>
                                     <td><input type="number" class="form-control form-control-sm" name="associe_parts[]" value="${parts}" readonly></td>
                                     <td><input type="number" class="form-control form-control-sm" name="associe_montant[]" value="${montant}" readonly></td>
                                     <td>
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">Supprimer</button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeAssocie(this)">Supprimer</button>
                                     </td>
                                 </tr>
                             `;
-
+                        
                             addedAssociesContainer.insertAdjacentHTML('beforeend', associeRow);
                         
                             // مسح الحقول بعد الإضافة
+                            resetAssocieForm();
+                        
+                            // إغلاق المودال
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('associeModal'));
+                            modal.hide();
+                        }
+                        
+                        // وظيفة لمسح الحقول
+                        function resetAssocieForm() {
                             document.getElementById('associe_nom').value = '';
                             document.getElementById('associe_prenom').value = '';
                             document.getElementById('associe_datn').value = '';
@@ -682,12 +688,16 @@
                             document.getElementById('associe_adresse').value = '';
                             document.getElementById('associe_parts').value = '';
                             document.getElementById('associe_montant').value = '';
+                        }
                         
-                            // إغلاق المودال
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('associeModal'));
-                            modal.hide();
-                        }                                             
+                        // وظيفة لإزالة الشريك
+                        function removeAssocie(button) {
+                            const row = button.closest('tr');
+                            row.remove();
+                        }
+                        
                     </script>
+                    
 
 
                     <!-- Step 6: E-Documents -->

@@ -702,16 +702,13 @@ def folder_client(request):
                         raise ValueError(f"La date '{date_str}' doit être au format YYYY-MM-DD.")
                 return None
 
+            
             # Enregistrement des données générales
             raison_sociale = request.POST.get('raison_sociale')
             activite = request.POST.get('activite')
             email = request.POST.get('email')
             ville = request.POST.get('ville')
             adresse = request.POST.get('adresse')
-            personne_1 = request.POST.get('personne_1')
-            personne_2 = request.POST.get('personne_2')
-            telephone = request.POST.get('telephone')
-            regime_tva = request.POST.get('regime_tva')
             forme_juridique = request.POST.get('forme_juridique')
             identifiant_fiscal = request.POST.get('identifiant_fiscal')
             registre_commerce = request.POST.get('registre_commerce')
@@ -730,10 +727,6 @@ def folder_client(request):
                 email=email,
                 ville=ville,
                 adresse=adresse,
-                personne_1=personne_1,
-                personne_2=personne_2,
-                telephone=telephone,
-                regime_tva_id=regime_tva,
                 forme_juridique_id=forme_juridique,
                 identifiant_fiscal=identifiant_fiscal,
                 registre_commerce=registre_commerce,
@@ -744,8 +737,68 @@ def folder_client(request):
                 tenue_comptabilite=tenue_comptabilite,
                 cabinet_comptable_id=cabinet_comptable,
                 date_reception_dossier=parse_date(date_reception_dossier),
+                date_create = models.DateTimeField(auto_now_add=True, editable=False),
+                user_create=request.user
             )
+
+            # Enregistrement des contacts associés
+            noms_complets = request.POST.getlist('nom_complet[]')
+            emails = request.POST.getlist('email[]')
+            telephones = request.POST.getlist('telephone[]')
+            
+            # Enregistrement des contacts associés
+            for nom, email_contact, telephone in zip(noms_complets, emails, telephones):
+                if nom or email_contact or telephone:
+                    try:
+                        if not Contact.objects.filter(nom_complet=nom, email=email_contact, telephone=telephone).exists():
+                            Contact.objects.create(
+                                nom_complet=nom,
+                                email=email_contact,
+                                telephone=telephone,
+                                customer_files=customer_file,
+                                user_create=request.user
+                            )
+                        else:
+                            print(f"Duplicate contact found: {nom}")
+                    except Exception as e:
+                        print(f"Error while saving contact {nom}: {e}")
+
+            print(noms_complets , emails , telephones)
+
+            # Enregistrement des régimes fiscaux associés
+            service_types = request.POST.getlist('service_type[]')
+            service_options = request.POST.getlist('service_option[]')
+            tva_periods = request.POST.getlist('tva_period[]')
+
+            for service_type, service_option, tva_period in zip(service_types, service_options, tva_periods):
+                if service_type:  # Vérifier qu'il y a un type de service
+                    # If service type is 'TVA', we allow tva_period to be set
+                    if service_type == 'TVA' and not tva_period:
+                        # Raise an error if 'TVA' type is selected but tva_period is missing
+                        raise ValidationError("Le champ 'Période (TVA)' est requis pour le type TVA.")
+                    
+                    # Create the FiscalRegime object
+                    FiscalRegime.objects.create(
+                        type=service_type,
+                        option=service_option,
+                        tva_period=tva_period if service_type == 'TVA' else None,  # Ensure tva_period is set only for TVA
+                        customer_file=customer_file
+                    )
+
+
             messages.success(request, "Le dossier client a été créé avec succès !")
+
+            for nom, email, telephone in zip(noms_complets, emails, telephones):
+                nom = nom.strip() if nom and isinstance(nom, str) else None
+                email = email.strip() if email and isinstance(email, str) else None
+                telephone = telephone.strip() if telephone and isinstance(telephone, str) else None
+                contact = Contact.objects.create(
+                    customer_file=customer_file,  # Ensure `customer_file` is defined and passed
+                    nom_complet=nom,
+                    email=email,
+                    telephone=telephone,
+                    user_create=request.user  # Set the user who is creating the contact
+                )
 
             # Enregistrement des services si "Tenue Comptabilité" est activé
             if tenue_comptabilite:
@@ -801,10 +854,9 @@ def folder_client(request):
             datns = request.POST.getlist('associe_datn[]')
             cines = request.POST.getlist('associe_cine[]')
             adresses = request.POST.getlist('associe_adresse[]')
-            professions = request.POST.getlist('associe_profession[]')
             parts = request.POST.getlist('associe_parts[]')
             montants = request.POST.getlist('associe_montant[]')
-
+            print(datns)
             for index in range(len(noms)):
                 if noms[index] and prenoms[index]:
                     Associe.objects.create(
@@ -814,12 +866,12 @@ def folder_client(request):
                         datn=parse_date(datns[index]) if index < len(datns) and datns[index] else None,
                         cine=cines[index] if index < len(cines) else "",
                         adresse=adresses[index] if index < len(adresses) else "",
-                        profession=professions[index] if index < len(professions) else "",
                         parts=int(parts[index]) if index < len(parts) and parts[index] else 0,
                         montant=float(montants[index]) if index < len(montants) and montants[index] else 0.0,
                         user_create=request.user,
                     )
             messages.success(request, f"{len(noms)} associé(s) ont été enregistré(s) avec succès !")
+
 
             # Gestion des contrats
             type_contrat = request.POST.get('type_contrat')
@@ -839,11 +891,7 @@ def folder_client(request):
                     date_debut=date_debut_physique,
                     date_fin=date_fin_physique,
                     date_naissance=date_naissance_physique,
-                    lieu_naissance=request.POST.get('lieu_naissance_physique'),
-                    nom_pere=request.POST.get('nom_pere_physique'),
-                    nom_mere=request.POST.get('nom_mere_physique'),
                     adresse=request.POST.get('adresse_physique'),
-                    profession=request.POST.get('profession_physique'),
                     date_contrat=date_contrat_physique,
                 )
                 messages.success(request, "Le contrat pour une personne physique a été enregistré avec succès !")
@@ -862,9 +910,6 @@ def folder_client(request):
                     nom_representant=request.POST.get('nom_representant'),
                     cin_representant=request.POST.get('cin_representant'),
                     date_naissance_representant=date_naissance_representant,
-                    lieu_naissance_representant=request.POST.get('lieu_naissance_representant'),
-                    nom_pere_representant=request.POST.get('nom_pere_representant'),
-                    nom_mere_representant=request.POST.get('nom_mere_representant'),
                     loyer_mensuel_contrat=loyer_mensuel_contrat_morale,
                     loyer_mensuel_plateforme=loyer_mensuel_plateforme_morale,
                     date_debut=date_debut_morale,
@@ -1016,7 +1061,6 @@ def edit_customer_file(request, pk):
             datns = request.POST.getlist('associe_datn[]')
             cines = request.POST.getlist('associe_cine[]')
             adresses = request.POST.getlist('associe_adresse[]')
-            professions = request.POST.getlist('associe_profession[]')
             parts = request.POST.getlist('associe_parts[]')
             montants = request.POST.getlist('associe_montant[]')
 
@@ -1031,7 +1075,6 @@ def edit_customer_file(request, pk):
                         datn=datns[index] if index < len(datns) and datns[index] else None,
                         cine=cines[index] if index < len(cines) else "",
                         adresse=adresses[index] if index < len(adresses) else "",
-                        profession=professions[index] if index < len(professions) else "",
                         parts=int(parts[index]) if index < len(parts) and parts[index] else 0,
                         montant=float(montants[index]) if index < len(montants) and montants[index] else 0.0,
                         user_create=request.user,
@@ -1236,7 +1279,6 @@ def ajouter_contrat(request, contrat_id=None):
         nom_pere = request.POST.get("nom_pere")
         nom_mere = request.POST.get("nom_mere")
         adresse = request.POST.get("adresse")
-        profession = request.POST.get("profession")
         conditions = request.POST.get("conditions")
         date_contrat = request.POST.get("date_contrat")
 
@@ -1247,12 +1289,7 @@ def ajouter_contrat(request, contrat_id=None):
             contrat.date_debut = date_debut
             contrat.date_fin = date_fin
             contrat.date_naissance = date_naissance
-            contrat.lieu_naissance = lieu_naissance
-            contrat.nom_pere = nom_pere
-            contrat.nom_mere = nom_mere
             contrat.adresse = adresse
-            contrat.profession = profession
-            contrat.conditions = conditions
             contrat.date_contrat = date_contrat
             contrat.save()
             print("تم تعديل العقد:", contrat)
@@ -1264,12 +1301,9 @@ def ajouter_contrat(request, contrat_id=None):
                 date_debut=date_debut,
                 date_fin=date_fin,
                 date_naissance=date_naissance,
-                lieu_naissance=lieu_naissance,
                 nom_pere=nom_pere,
                 nom_mere=nom_mere,
                 adresse=adresse,
-                profession=profession,
-                conditions=conditions,
                 date_contrat=date_contrat,
             )
         return redirect("liste_contrats")

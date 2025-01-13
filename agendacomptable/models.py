@@ -1,8 +1,10 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from datetime import date, datetime
+
 
 class Societe(models.Model):
     num = models.CharField(max_length=6, null=True, verbose_name="Numéro")
@@ -291,13 +293,39 @@ class Comptable(models.Model):
     def __str__(self):
         return f"{self.lib_08} - {self.contact_08}"
 
-class Contact(models.Model):
-    nom_complet = models.CharField(max_length=100, verbose_name="Nom Complet", null=True, blank=True)
-    email = models.EmailField(max_length=100, verbose_name="E-Mail", null=True, blank=True)
-    telephone = models.CharField(max_length=15, verbose_name="Téléphone", null=True, blank=True)
+
+
+class FiscalRegime(models.Model):
+    type = models.CharField(max_length=50, verbose_name="Type de Régime")
+    option = models.CharField(max_length=50, verbose_name="Option", null=True, blank=True)
+    tva_period = models.CharField(
+        max_length=20,
+        choices=[('Mensuelle', 'Mensuelle'), ('Trimestrielle', 'Trimestrielle')],
+        verbose_name="Période (TVA)",
+        null=True,
+        blank=True
+    )
+    customer_file = models.ForeignKey(
+        'CustomerFile',
+        related_name='fiscal_regimes',
+        on_delete=models.CASCADE,
+        verbose_name="Fiche Client"
+    )
 
     def __str__(self):
-        return self.nom_complet or "Contact Inconnu"
+        return f"{self.type} - {self.option or 'N/A'}"
+
+    def clean(self):
+        """
+        Verify that tva_period is only set when type is 'TVA'.
+        """
+        if self.type != 'TVA' and self.tva_period:
+            raise ValidationError({'tva_period': 'Le champ "Période (TVA)" ne peut être rempli que pour le régime TVA.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Trigger the validation
+        super().save(*args, **kwargs)
+
 
 class CustomerFile(models.Model):
     raison_sociale = models.CharField(max_length=70, verbose_name="Raison Sociale")
@@ -306,7 +334,6 @@ class CustomerFile(models.Model):
     adresse = models.TextField(verbose_name="Adresse")
     email = models.EmailField(max_length=100, verbose_name="E-Mail")
     contacts = models.ManyToManyField('Contact', related_name="customer_files", verbose_name="Contacts", blank=True)
-    regime_tva = models.ForeignKey('Regime', on_delete=models.SET_NULL, null=True)
     forme_juridique = models.ForeignKey('FormeJuridique', on_delete=models.SET_NULL, null=True)
     date_creation = models.DateField(null=True)
     ice = models.CharField(max_length=24, verbose_name="ICE", null=True, blank=True)
@@ -325,6 +352,37 @@ class CustomerFile(models.Model):
 
     def __str__(self):
         return self.raison_sociale
+
+
+
+class Contact(models.Model):
+    
+    customer_file = models.ForeignKey(
+        CustomerFile,
+        on_delete=models.CASCADE,
+        related_name="customer_contacts"  # Set unique related_name
+    )
+    nom_complet = models.CharField(max_length=255)
+    email = models.EmailField()
+    telephone = models.CharField(max_length=20)
+
+    user_create = models.ForeignKey(
+        'auth.User', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name="created_contacts"
+    )
+    user_edit = models.ForeignKey(
+        'auth.User', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name="edited_contacts"
+    )
+    date_create = models.DateTimeField(auto_now_add=True)
+    date_edit = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.nom_complet
 
 class CustomerService(models.Model):
     customer_file = models.ForeignKey(CustomerFile, related_name="services", on_delete=models.CASCADE, verbose_name="Customer File")
