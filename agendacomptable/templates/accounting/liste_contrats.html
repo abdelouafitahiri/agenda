@@ -75,7 +75,7 @@
                                     <div class="modal fade" id="renouvelerModal{{ contrat.id_contrat }}" tabindex="-1" aria-labelledby="renouvelerModalLabel" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
-                                                <form method="post" action="{% url 'renouveler_contrat' contrat.id_contrat %}">
+                                                <form method="post" action="">
                                                     {% csrf_token %}
                                                     <!-- عنوان المودال -->
                                                     <div class="modal-header bg-primary text-white">

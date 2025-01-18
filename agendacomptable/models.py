@@ -384,6 +384,15 @@ class Contact(models.Model):
     def __str__(self):
         return self.nom_complet
 
+class PartialPayment(models.Model):
+    customer_service = models.ForeignKey('CustomerService', related_name="partial_payments", on_delete=models.CASCADE, verbose_name="Customer Service")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Payment Amount")
+    date_payment = models.DateTimeField(auto_now_add=True, verbose_name="Payment Date")
+    month = models.DateField(verbose_name="Payment Month")  # حقل جديد لتحديد الشهر
+
+    def __str__(self):
+        return f"{self.amount} MAD on {self.date_payment.strftime('%d/%m/%Y')} for {self.customer_service}"
+
 class CustomerService(models.Model):
     customer_file = models.ForeignKey(CustomerFile, related_name="services", on_delete=models.CASCADE, verbose_name="Customer File")
     service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="Service")
@@ -392,6 +401,14 @@ class CustomerService(models.Model):
     date_fin = models.DateField(verbose_name="End Date")
     date_create = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     date_edit = models.DateTimeField(auto_now=True, verbose_name="Last Modified")
+
+    total_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Total Paid")
+    is_fully_paid = models.BooleanField(default=False, verbose_name="Fully Paid")
+    
+    def update_payment_status(self):
+        self.total_paid = sum(payment.amount for payment in self.partial_payments.all())
+        self.is_fully_paid = self.total_paid >= self.prix
+        self.save()
 
     def __str__(self):
         return f"{self.service.libelle} for {self.customer_file.raison_sociale}"
@@ -489,9 +506,21 @@ class ContratPersonnePhysique(models.Model):
     date_naissance = models.DateField(null=True, blank=True, verbose_name="Date de Naissance")
     adresse = models.TextField(null=True, blank=True, verbose_name="Adresse")
     date_contrat = models.DateField(verbose_name="Date du Contrat")
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name="Date de Création")
+    date_edit = models.DateTimeField(auto_now=True, verbose_name="Date de Modification")
 
-    def __str__(self):
-        return f"Contrat - {self.nom_prenom}"
+    @property
+    def duree_contrat(self):
+        """
+        Calculer la durée du contrat en jours, mois, et années.
+        """
+        if self.date_debut and self.date_fin:
+            delta = self.date_fin - self.date_debut
+            years = delta.days // 365
+            months = (delta.days % 365) // 30
+            days = (delta.days % 365) % 30
+            return f"{years} ans, {months} mois, {days} jours"
+        return "Durée inconnue"
 
 class ContratPersonneMorale(models.Model):
     customer_file = models.ForeignKey(
@@ -500,6 +529,7 @@ class ContratPersonneMorale(models.Model):
         on_delete=models.CASCADE, 
         verbose_name="Fichier Client"
     )
+    nom_soc = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nom de la société")
     id_contrat = models.AutoField(primary_key=True, verbose_name="Numéro du contrat")
     registre_commerce = models.CharField(max_length=255, verbose_name="Numéro du registre de commerce")
     nom_representant = models.CharField(max_length=255, verbose_name="Nom complet du représentant légal")
@@ -512,8 +542,35 @@ class ContratPersonneMorale(models.Model):
     date_fin = models.DateField(verbose_name="Date de fin")
     date_contrat = models.DateField(verbose_name="Date du contrat")
     periode_renouvellement = models.CharField(max_length=50, null=True, blank=True, verbose_name="Période de renouvellement")
-    cree_le = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
-    mis_a_jour_le = models.DateTimeField(auto_now=True, verbose_name="Mis à jour le")
+    user_create = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name="contrats_personne_morale_createur",  # Nom unique
+        verbose_name="Créé par"
+    )
+    user_edit = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name="contrats_personne_morale_editeur",  # Nom unique
+        verbose_name="Modifié par"
+    )
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name="Date de Création en Système")
+    date_edit = models.DateTimeField(auto_now=True, verbose_name="Dernière Modification")
 
     def __str__(self):
         return f"Contrat #{self.id_contrat} - {self.id_contrat}"
+    
+    @property
+    def duree_contrat(self):
+        """
+        Calculer la durée du contrat en jours, mois, et années.
+        """
+        if self.date_debut and self.date_fin:
+            delta = self.date_fin - self.date_debut
+            years = delta.days // 365
+            months = (delta.days % 365) // 30
+            days = (delta.days % 365) % 30
+            return f"{years} ans, {months} mois, {days} jours"
+        return "Durée inconnue"

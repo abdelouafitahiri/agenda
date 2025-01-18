@@ -888,10 +888,6 @@
                                         <label for="date_naissance_physique" class="form-label">تاريخ الميلاد</label>
                                         <input type="date" class="form-control" id="date_naissance_physique" name="date_naissance_physique" value="{{ contrat.date_naissance|date:'Y-m-d'|default:'' }}">
                                     </div>
-                                </div>
-                    
-                                <!-- بيانات العنوان -->
-                                <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="adresse_physique" class="form-label">العنوان</label>
                                         <textarea class="form-control" id="adresse_physique" name="adresse_physique" rows="1">{{ contrat.adresse|default:'' }}</textarea>
@@ -906,12 +902,11 @@
                             
                                 <!-- الحقول العليا -->
                                 <div class="row mb-3">
-                                    <!--
-                                    <div class="col-md-4">
-                                        <label for="id_contrat" class="form-label">رقم العقد</label>
-                                        <input type="text" class="form-control" id="id_contrat" name="id_contrat" value="{{ contrat.id_contrat|default:'' }}" readonly>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="nom_soc" class="form-label">إسم الشركة</label>
+                                        <input type="text" class="form-control" id="nom_soc" name="nom_soc">
                                     </div>
-                                    -->
                                     <div class="col-md-6">
                                         <label for="date_contrat" class="form-label">تاريخ العقد</label>
                                         <input type="date" class="form-control" id="date_contrat" name="date_contrat" value="{{ contrat.date_contrat|date:'Y-m-d'|default:'' }}">

@@ -87,151 +87,533 @@
             </div>
         </div>
         
-       
+
         {% if grouped_payments %}
-            <div class="row mt-5">
-                <h4 class="mb-4" style="text-align-last: center;">Clients et services pour le mois sélectionné :</h4>
-                {% for customer, services in grouped_payments.items %}
-                <div class="col-md-6 col-lg-4">
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-body">
-                            <div class="text-center">
-                                <h5 class="card-title">{{ customer.raison_sociale }}</h5>
-                                <p class="card-text text-muted"><small>({{ customer.ville }})</small></p>
-                                <p class="text-muted"><strong>Total Services:</strong> {{ services|length }}</p>
-                            </div>
-                            <div class="d-flex justify-content-center">
-                                <!-- Button to trigger modal -->
+    <div class="row mt-2">
+        <h4 class="mb-4" style="text-align-last: center;">Clients et services pour le mois sélectionné :</h4>
+        {% for customer, services in grouped_payments.items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="text-center">
+                        <h5 class="card-title">{{ customer.raison_sociale }}</h5>
+                        <p class="card-text text-muted"><small>({{ customer.ville }})</small></p>
+                        <p class="text-muted"><strong>Total Services:</strong> {{ services|length }}</p>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <!-- Button to trigger modal -->
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-sm w-75" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modal-{{ customer.id }}">
+                            Voir les Services
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for customer services -->
+        <div class="modal fade" id="modal-{{ customer.id }}" tabindex="-1" aria-labelledby="modalLabel-{{ customer.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel-{{ customer.id }}">Services pour {{ customer.raison_sociale }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-hover">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nom du service</th>
+                                    <th>Date de début</th>
+                                    <th>Date de fin</th>
+                                    <th>Prix (MAD)</th>
+                                    <th>Montant payé</th>
+                                    <th>Montant restant</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in services %}
+                                <tr id="payment-row-{{ payment.id }}" class="{% if payment.is_paid %}table-success{% else %}table-danger{% endif %}">
+                                    <td class="text-center">{{ forloop.counter }}</td>
+                                    <td>{{ payment.service.service.libelle }}</td>
+                                    <td class="text-center">{{ payment.service.date_debut|date:"d/m/Y" }}</td>
+                                    <td class="text-center">{{ payment.service.date_fin|date:"d/m/Y" }}</td>
+                                    <td class="text-end" data-prix="{{ payment.service.prix }}">{{ payment.service.prix }}</td>
+                                    <td class="text-end" data-total-partial="{{ payment.total_partial }}">{{ payment.total_partial }}</td>
+                                    <td class="text-end montant-restant"></td> <!-- سيتم ملؤه بواسطة JavaScript -->
+                                    <td class="text-center">
+                                        <span class="badge {% if payment.is_paid %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if payment.is_paid %}
+                                                Payé
+                                            {% else %}
+                                                Non payé
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if payment.is_paid %}
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-warning btn-sm toggle-payment" 
+                                                data-action="unpay-{{ payment.id }}">
+                                                Annuler
+                                            </button>
+                                        {% else %}
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-success btn-sm toggle-payment" 
+                                                data-action="pay-{{ payment.id }}">
+                                                Confirmer
+                                            </button>
+                                        {% endif %}
+                                        <!-- Partial Payment Button -->
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-info btn-sm partial-payment" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#partial-payment-{{ payment.id }}" 
+                                            aria-expanded="false" 
+                                            aria-controls="partial-payment-{{ payment.id }}">
+                                            Paiement partiel
+                                        </button>
+                                    </td>
+                                </tr>
+                                <!-- Partial Payment Section -->
+                                <tr id="partial-payment-{{ payment.id }}" class="collapse bg-light">
+                                    <td colspan="9">
+                                        <form class="partial-payment-form" data-id="{{ payment.id }}">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-4">
+                                                    <label for="partial-amount-{{ payment.id }}" class="form-label">Montant (MAD)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        class="form-control" 
+                                                        id="partial-amount-{{ payment.id }}" 
+                                                        name="partial_amount" 
+                                                        step="0.01" 
+                                                        min="0" 
+                                                        required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="partial-date-{{ payment.id }}" class="form-label">Date</label>
+                                                    <input 
+                                                        type="date" 
+                                                        class="form-control" 
+                                                        id="partial-date-{{ payment.id }}" 
+                                                        name="partial_date" 
+                                                        required>
+                                                </div>
+                                                <div class="col-md-4 text-center">
+                                                    <button 
+                                                        type="submit" 
+                                                        class="btn btn-primary mt-4 w-100">
+                                                        Enregistrer
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <!-- Display partial payments -->
+                                        <div class="mt-3">
+                                            <h6>Historique des paiements partiels :</h6>
+                                            <ul class="list-group" id="partial-payment-list-{{ payment.id }}">
+                                                {% for partial in payment.service.partial_payments.all %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" data-partial-id="{{ partial.id }}">
+                                                    {{ partial.amount }} MAD - {{ partial.date_payment|date:"d/m/Y" }}
+                                                    <div>
+                                                        <button 
+                                                            type="button" 
+                                                            class="btn btn-sm btn-warning edit-partial" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#edit-partial-modal-{{ partial.id }}">
+                                                            Modifier
+                                                        </button>
+                                                        <button 
+                                                            type="button" 
+                                                            class="btn btn-sm btn-danger delete-partial" 
+                                                            data-partial-id="{{ partial.id }}">
+                                                            Supprimer
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for editing partial payments -->
+        {% for payment in services %}
+            {% for partial in payment.service.partial_payments.all %}
+            <div class="modal fade" id="edit-partial-modal-{{ partial.id }}" tabindex="-1" aria-labelledby="edit-partial-modal-label-{{ partial.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="edit-partial-modal-label-{{ partial.id }}">Modifier le paiement partiel</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form class="edit-partial-form" data-partial-id="{{ partial.id }}">
+                                <div class="mb-3">
+                                    <label for="edit-amount-{{ partial.id }}" class="form-label">Montant (MAD)</label>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="edit-amount-{{ partial.id }}" 
+                                        name="amount" 
+                                        value="{{ partial.amount }}" 
+                                        step="0.01" 
+                                        min="0" 
+                                        required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-date-{{ partial.id }}" class="form-label">Date</label>
+                                    <input 
+                                        type="date" 
+                                        class="form-control" 
+                                        id="edit-date-{{ partial.id }}" 
+                                        name="date" 
+                                        value="{{ partial.date_payment|date:'Y-m-d' }}" 
+                                        required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Modal for messages -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="messageModalBody">
+                <!-- Message content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for delete confirmation -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                <!-- Confirmation message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Function to show messages in the modal
+        function showMessage(message, isSuccess = true) {
+            const messageModalBody = document.getElementById("messageModalBody");
+            messageModalBody.textContent = message;
+            if (isSuccess) {
+                messageModalBody.classList.remove("text-danger");
+                messageModalBody.classList.add("text-success");
+            } else {
+                messageModalBody.classList.remove("text-success");
+                messageModalBody.classList.add("text-danger");
+            }
+            const messageModal = new bootstrap.Modal(document.getElementById("messageModal"));
+            messageModal.show();
+
+            // إخفاء الرسالة بعد 5 ثواني
+            setTimeout(() => {
+                messageModal.hide();
+            }, 5000); // 5000 ميلي ثانية = 5 ثواني
+        }
+
+        // حساب المبلغ المتبقي لكل صف
+        document.querySelectorAll("tr[id^='payment-row-']").forEach(row => {
+            const prix = parseFloat(row.querySelector("[data-prix]").getAttribute("data-prix"));
+            const totalPartial = parseFloat(row.querySelector("[data-total-partial]").getAttribute("data-total-partial"));
+            const montantRestant = prix - totalPartial;
+            row.querySelector(".montant-restant").textContent = montantRestant.toFixed(2);
+        });
+
+        // معالجة الأزرار (Confirmer/Annuler)
+        document.querySelectorAll(".toggle-payment").forEach(button => {
+            button.addEventListener("click", function () {
+                const action = this.dataset.action;
+                const [actionType, paymentId] = action.split("-");
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+                fetch("", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        "payment_action": action,
+                    }),
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (actionType === "pay") {
+                        document.querySelector(`#payment-row-${paymentId}`).classList.remove("table-danger");
+                        document.querySelector(`#payment-row-${paymentId}`).classList.add("table-success");
+                        document.querySelector(`#payment-row-${paymentId} .badge`).classList.remove("bg-danger");
+                        document.querySelector(`#payment-row-${paymentId} .badge`).classList.add("bg-success");
+                        document.querySelector(`#payment-row-${paymentId} .badge`).textContent = "Payé";
+                        this.classList.remove("btn-success");
+                        this.classList.add("btn-warning");
+                        this.textContent = "Annuler";
+                        this.dataset.action = `unpay-${paymentId}`;
+                    } else if (actionType === "unpay") {
+                        document.querySelector(`#payment-row-${paymentId}`).classList.remove("table-success");
+                        document.querySelector(`#payment-row-${paymentId}`).classList.add("table-danger");
+                        document.querySelector(`#payment-row-${paymentId} .badge`).classList.remove("bg-success");
+                        document.querySelector(`#payment-row-${paymentId} .badge`).classList.add("bg-danger");
+                        document.querySelector(`#payment-row-${paymentId} .badge`).textContent = "Non payé";
+                        this.classList.remove("btn-warning");
+                        this.classList.add("btn-success");
+                        this.textContent = "Confirmer";
+                        this.dataset.action = `pay-${paymentId}`;
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+
+        // معالجة النموذج (Paiement partiel)
+        document.querySelectorAll(".partial-payment-form").forEach(form => {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const paymentId = this.dataset.id;
+                const amount = this.querySelector("[name=partial_amount]").value;
+                const date = this.querySelector("[name=partial_date]").value;
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+                fetch("{% url 'partial_payment' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        "partial_payment": true,
+                        "payment_id": paymentId,
+                        "amount": amount,
+                        "date": date,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.amount && data.date) {
+                        // إضافة الدفع الجزئي في الواجهة
+                        const list = document.querySelector(`#partial-payment-list-${paymentId}`);
+                        const listItem = document.createElement("li");
+                        listItem.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+                        listItem.setAttribute("data-partial-id", data.id);
+                        listItem.innerHTML = `
+                            ${data.amount} MAD - ${data.date}
+                            <div>
                                 <button 
                                     type="button" 
-                                    class="btn btn-primary btn-sm w-75" 
+                                    class="btn btn-sm btn-warning edit-partial" 
                                     data-bs-toggle="modal" 
-                                    data-bs-target="#modal-{{ customer.id }}">
-                                    Voir les Services
+                                    data-bs-target="#edit-partial-modal-${data.id}">
+                                    Modifier
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-danger delete-partial" 
+                                    data-partial-id="${data.id}">
+                                    Supprimer
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        `;
+                        list.appendChild(listItem);
 
-                <!-- Modal for customer services -->
-                <div class="modal fade" id="modal-{{ customer.id }}" tabindex="-1" aria-labelledby="modalLabel-{{ customer.id }}" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="modalLabel-{{ customer.id }}">Services pour {{ customer.raison_sociale }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <table class="table table-hover">
-                                    <thead class="table-dark text-center">
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Nom du service</th>
-                                            <th>Date de début</th>
-                                            <th>Date de fin</th>
-                                            <th>Prix (MAD)</th>
-                                            <th>Statut</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for payment in services %}
-                                        <tr id="payment-row-{{ payment.id }}" class="{% if payment.is_paid %}table-success{% else %}table-danger{% endif %}">
-                                            <td class="text-center">{{ forloop.counter }}</td>
-                                            <td>{{ payment.service.service.libelle }}</td>
-                                            <td class="text-center">{{ payment.service.date_debut|date:"d/m/Y" }}</td>
-                                            <td class="text-center">{{ payment.service.date_fin|date:"d/m/Y" }}</td>
-                                            <td class="text-end">{{ payment.service.prix }}</td>
-                                            <td class="text-center">
-                                                <span class="badge {% if payment.is_paid %}bg-success{% else %}bg-danger{% endif %}">
-                                                    {% if payment.is_paid %}
-                                                        Payé
-                                                    {% else %}
-                                                        Non payé
-                                                    {% endif %}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                {% if payment.is_paid %}
-                                                    <button 
-                                                        type="button" 
-                                                        class="btn btn-warning btn-sm toggle-payment" 
-                                                        data-action="unpay-{{ payment.id }}">
-                                                        Annuler
-                                                    </button>
-                                                {% else %}
-                                                    <button 
-                                                        type="button" 
-                                                        class="btn btn-success btn-sm toggle-payment" 
-                                                        data-action="pay-{{ payment.id }}">
-                                                        Confirmer
-                                                    </button>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+                        // إعادة تعيين النموذج
+                        this.reset();
 
+                        // تحديث المبلغ المتبقي
+                        const row = document.querySelector(`#payment-row-${paymentId}`);
+                        const prix = parseFloat(row.querySelector("[data-prix]").getAttribute("data-prix"));
+                        const totalPartial = parseFloat(row.querySelector("[data-total-partial]").getAttribute("data-total-partial")) + parseFloat(data.amount);
+                        row.querySelector("[data-total-partial]").setAttribute("data-total-partial", totalPartial);
+                        row.querySelector("[data-total-partial]").textContent = totalPartial.toFixed(2);
+                        row.querySelector(".montant-restant").textContent = (prix - totalPartial).toFixed(2);
 
-    
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                document.querySelectorAll(".toggle-payment").forEach(button => {
-                    button.addEventListener("click", function () {
-                        const action = this.dataset.action;
-                        const [actionType, paymentId] = action.split("-");
-                        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    
-                        fetch("", {
-                            method: "POST",
-                            headers: {
-                                "X-CSRFToken": csrfToken,
-                                "Content-Type": "application/x-www-form-urlencoded",
-                            },
-                            body: new URLSearchParams({
-                                "payment_action": action,
-                            }),
-                        })
-                        .then(response => response.text())
-                        .then(data => {
-                            if (actionType === "pay") {
-                                document.querySelector(`#payment-row-${paymentId}`).classList.remove("table-danger");
-                                document.querySelector(`#payment-row-${paymentId}`).classList.add("table-success");
-                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.remove("bg-danger");
-                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.add("bg-success");
-                                document.querySelector(`#payment-row-${paymentId} .badge`).textContent = "Payé";
-                                this.classList.remove("btn-success");
-                                this.classList.add("btn-warning");
-                                this.textContent = "Annuler";
-                                this.dataset.action = `unpay-${paymentId}`;
-                            } else if (actionType === "unpay") {
-                                document.querySelector(`#payment-row-${paymentId}`).classList.remove("table-success");
-                                document.querySelector(`#payment-row-${paymentId}`).classList.add("table-danger");
-                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.remove("bg-success");
-                                document.querySelector(`#payment-row-${paymentId} .badge`).classList.add("bg-danger");
-                                document.querySelector(`#payment-row-${paymentId} .badge`).textContent = "Non payé";
-                                this.classList.remove("btn-warning");
-                                this.classList.add("btn-success");
-                                this.textContent = "Confirmer";
-                                this.dataset.action = `pay-${paymentId}`;
-                            }
-                        })
-                        .catch(error => console.error("Error:", error));
-                    });
+                        // عرض رسالة النجاح
+                        showMessage("Le paiement partiel a été ajouté avec succès.", true);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    showMessage("Une erreur s'est produite lors de l'ajout du paiement partiel.", false);
                 });
             });
-        </script>
+        });
 
-        
+        // معالجة حذف الدفعة الجزئية
+        document.querySelectorAll(".delete-partial").forEach(button => {
+            button.addEventListener("click", function () {
+                const partialId = this.dataset.partialId;
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+                // تأكيد الحذف باستخدام مودال
+                const confirmModalBody = document.getElementById("confirmModalBody");
+                confirmModalBody.textContent = "Êtes-vous sûr de vouloir supprimer ce paiement partiel ?";
+                const confirmModal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                confirmModal.show();
+
+                // زر التأكيد في مودال الحذف
+                document.getElementById("confirmDeleteButton").onclick = () => {
+                    fetch(`/delete-partial-payment/${partialId}/`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const listItem = document.querySelector(`li[data-partial-id="${partialId}"]`);
+                            if (listItem) {
+                                listItem.remove();
+
+                                // تحديث المبلغ المتبقي
+                                const paymentId = listItem.closest("tr").dataset.id;
+                                const row = document.querySelector(`#payment-row-${paymentId}`);
+                                if (row) {
+                                    const prix = parseFloat(row.querySelector("[data-prix]").getAttribute("data-prix"));
+                                    const totalPartial = parseFloat(row.querySelector("[data-total-partial]").getAttribute("data-total-partial")) - parseFloat(data.amount);
+                                    row.querySelector("[data-total-partial]").setAttribute("data-total-partial", totalPartial);
+                                    row.querySelector("[data-total-partial]").textContent = totalPartial.toFixed(2);
+                                    row.querySelector(".montant-restant").textContent = (prix - totalPartial).toFixed(2);
+                                }
+
+                                // عرض رسالة النجاح
+                                showMessage("Le paiement partiel a été supprimé avec succès.", true);
+                            }
+                        } else {
+                            // عرض رسالة الخطأ
+                            showMessage(data.error || "Une erreur s'est produite lors de la suppression du paiement partiel.", false);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        showMessage("Une erreur s'est produite lors de la suppression du paiement partiel.", false);
+                    });
+
+                    confirmModal.hide();
+                };
+            });
+        });
+
+        // معالجة تعديل الدفعة الجزئية
+        document.querySelectorAll(".edit-partial-form").forEach(form => {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const partialId = this.dataset.partialId;
+                const amount = this.querySelector("[name=amount]").value;
+                const date = this.querySelector("[name=date]").value;
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+                fetch(`/edit-partial-payment/${partialId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        "amount": amount,
+                        "date": date,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const listItem = document.querySelector(`li[data-partial-id="${partialId}"]`);
+                        if (listItem) {
+                            listItem.innerHTML = `
+                                ${data.amount} MAD - ${data.date}
+                                <div>
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-sm btn-warning edit-partial" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#edit-partial-modal-${partialId}">
+                                        Modifier
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-sm btn-danger delete-partial" 
+                                        data-partial-id="${partialId}">
+                                        Supprimer
+                                    </button>
+                                </div>
+                            `;
+
+                            // تحديث المبلغ المتبقي
+                            const paymentId = listItem.closest("tr").dataset.id;
+                            const row = document.querySelector(`#payment-row-${paymentId}`);
+                            if (row) {
+                                const prix = parseFloat(row.querySelector("[data-prix]").getAttribute("data-prix"));
+                                const totalPartial = parseFloat(row.querySelector("[data-total-partial]").getAttribute("data-total-partial")) - parseFloat(data.old_amount) + parseFloat(data.amount);
+                                row.querySelector("[data-total-partial]").setAttribute("data-total-partial", totalPartial);
+                                row.querySelector("[data-total-partial]").textContent = totalPartial.toFixed(2);
+                                row.querySelector(".montant-restant").textContent = (prix - totalPartial).toFixed(2);
+                            }
+
+                            // عرض رسالة النجاح
+                            showMessage("Le paiement partiel a été modifié avec succès.", true);
+                        }
+                    } else {
+                        // عرض رسالة الخطأ
+                        showMessage(data.error || "Une erreur s'est produite lors de la modification du paiement partiel.", false);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    showMessage("Une erreur s'est produite lors de la modification du paiement partiel.", false);
+                });
+            });
+        });
+
+    });
+</script>
 <!-- Pagination -->
 <ul class="pagination justify-content-center mt-4">
     {% if page_obj.has_previous %}

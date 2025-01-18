@@ -64,7 +64,10 @@ urlpatterns = [
 
     path('gestion_mois/', views.gestion_mois, name='gestion_mois'),
 
-    path("preparation-mois/", views.preparation_mois, name="preparation_mois"),  # إعداد الشهر
+    path("preparation-mois/", views.preparation_mois, name="preparation_mois"), 
+    path('partial-payment/', views.partial_payment, name='partial_payment'),
+    path('delete-partial-payment/<int:partial_id>/', views.delete_partial_payment, name='delete_partial_payment'),
+    path('edit-partial-payment/<int:partial_id>/', views.edit_partial_payment, name='edit_partial_payment'),
 
 
     path("contracts/", views.liste_contrats, name="liste_contrats"),

@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.db.models import Q
 from itertools import groupby
+from django.utils.timezone import make_aware
 from datetime import date, timedelta
 from .models import *
 import calendar
@@ -763,8 +765,6 @@ def folder_client(request):
                     except Exception as e:
                         print(f"Error while saving contact {nom}: {e}")
 
-            print(noms_complets , emails , telephones)
-
             # Enregistrement des régimes fiscaux associés
             service_types = request.POST.getlist('service_type[]')
             service_options = request.POST.getlist('service_option[]')
@@ -856,7 +856,7 @@ def folder_client(request):
             adresses = request.POST.getlist('associe_adresse[]')
             parts = request.POST.getlist('associe_parts[]')
             montants = request.POST.getlist('associe_montant[]')
-            print(datns)
+            
             for index in range(len(noms)):
                 if noms[index] and prenoms[index]:
                     Associe.objects.create(
@@ -893,6 +893,8 @@ def folder_client(request):
                     date_naissance=date_naissance_physique,
                     adresse=request.POST.get('adresse_physique'),
                     date_contrat=date_contrat_physique,
+                    user_create=request.user,
+                    date_create = models.DateTimeField(auto_now_add=True, editable=False),
                 )
                 messages.success(request, "Le contrat pour une personne physique a été enregistré avec succès !")
 
@@ -903,9 +905,10 @@ def folder_client(request):
                 date_fin_morale = parse_date(request.POST.get('date_fin'))
                 date_contrat_morale = parse_date(request.POST.get('date_contrat'))
                 date_naissance_representant = parse_date(request.POST.get('date_naissance_representant'))
-
+                nom_soc = request.POST.get('nom_soc')
                 ContratPersonneMorale.objects.create(
                     customer_file=customer_file,
+                    nom_soc = nom_soc,
                     registre_commerce=request.POST.get('registre_commerce'),
                     nom_representant=request.POST.get('nom_representant'),
                     cin_representant=request.POST.get('cin_representant'),
@@ -914,8 +917,9 @@ def folder_client(request):
                     loyer_mensuel_plateforme=loyer_mensuel_plateforme_morale,
                     date_debut=date_debut_morale,
                     date_fin=date_fin_morale,
-                    conditions=request.POST.get('conditions'),
                     date_contrat=date_contrat_morale,
+                    user_create=request.user,
+                    date_create = models.DateTimeField(auto_now_add=True, editable=False),
                 )
                 messages.success(request, "Le contrat pour une personne morale a été enregistré avec succès !")
 
@@ -1106,7 +1110,6 @@ def edit_customer_file(request, pk):
         'associes': associes,
     })
 
-
 def folder_client_archive(request, pk):
     """Archive ou réactive une forme juridique."""
     folder_client = get_object_or_404(CustomerFile, pk=pk)
@@ -1182,11 +1185,11 @@ def generate_payments_for_month(month, year):
 
     return payments_created
 
+from django.http import JsonResponse
+
 def preparation_mois(request):
     if request.method == "POST":
-        # Distinguish between the month preparation and payment actions
         if "prepare_month" in request.POST:
-            # Handle month preparation
             month = int(request.POST.get("month"))
             year = int(request.POST.get("year"))
 
@@ -1207,7 +1210,6 @@ def preparation_mois(request):
                 return redirect("preparation_mois")
 
         elif "payment_action" in request.POST:
-            # Handle payment actions
             action = request.POST.get("payment_action")
             try:
                 action_type, payment_id = action.split("-")
@@ -1226,14 +1228,15 @@ def preparation_mois(request):
             except (Payment.DoesNotExist, ValueError):
                 messages.error(request, "Action invalide ou ID de paiement introuvable.")
 
-    # Fetch months and grouped payments for the current or selected month/year
+    # Initialize payments as an empty list to avoid UnboundLocalError
+    payments = []
     months = Month.objects.all().order_by("year", "month")
-    exercices = Exercice.objects.filter(is_archived=False).order_by("libelle")  # Fetch active exercices
-    current_year = date.today().year  # Default to the first exercice or current year
+    exercices = Exercice.objects.filter(is_archived=False).order_by("libelle")
+    current_year = date.today().year
     grouped_payments = {}
     selected_month = None
+    total_paid = 0
 
-    # Get grouped payments if a month is selected
     if request.method == "POST" and "prepare_month" in request.POST:
         selected_month = Month.objects.filter(month=month, year=year).first()
         if selected_month:
@@ -1244,13 +1247,121 @@ def preparation_mois(request):
             ):
                 grouped_payments[customer] = list(group)
 
+            # Precompute the total of partial payments for each payment
+            for payment in payments:
+                total_partial = sum(partial.amount for partial in payment.service.partial_payments.all())
+                payment.total_partial = total_partial
+
     return render(request, "accounting/preparation_mois.html", {
         "months": months,
         "exercices": exercices,
         "current_year": current_year,
         "grouped_payments": grouped_payments,
         "selected_month": selected_month,
+        'total_paid': total_paid,  # Total paid for the selected month
+        'payments': payments,  # Pass payments with total_partial included
     })
+
+def partial_payment(request):
+    if request.method == "POST":
+        payment_id = request.POST.get("payment_id")
+        amount = request.POST.get("amount")
+        date_str = request.POST.get("date")
+        
+        # تحقق من وجود الدفع
+        try:
+            payment = Payment.objects.get(id=payment_id)
+        except Payment.DoesNotExist:
+            return JsonResponse({"error": "Payment not found"}, status=404)
+
+        # تحقق من صحة المبلغ
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return JsonResponse({"error": "Amount must be greater than 0"}, status=400)
+        except ValueError:
+            return JsonResponse({"error": "Invalid amount"}, status=400)
+
+        # تحقق من صحة التاريخ
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+            date_obj = make_aware(datetime.combine(date_obj, datetime.min.time()))
+        except ValueError:
+            return JsonResponse({"error": "Invalid date format"}, status=400)
+
+        # استخدام الخدمة المرتبطة بالدفع (الذي يحتوي على customer_service)
+        customer_service = payment.service  # استخدام service بدلاً من customer_service
+        
+        # إنشاء الدفع الجزئي
+        partial_payment = PartialPayment(customer_service=customer_service, amount=amount, date_payment=date_obj)
+        partial_payment.save()
+
+        # تحديث حالة الدفع
+        customer_service.update_payment_status()
+
+        # إرجاع الاستجابة
+        return JsonResponse({
+            "amount": amount,
+            "date": date_str,
+        })
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@require_POST
+def delete_partial_payment(request, partial_id):
+    try:
+        partial_payment = PartialPayment.objects.get(id=partial_id)
+        amount = partial_payment.amount
+        customer_service = partial_payment.customer_service
+        partial_payment.delete()
+
+        # تحديث حالة الدفع بعد الحذف
+        customer_service.update_payment_status()
+
+        return JsonResponse({"success": True, "amount": amount})
+    except PartialPayment.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Partial payment not found"})
+
+@require_POST
+def edit_partial_payment(request, partial_id):
+    try:
+        partial_payment = PartialPayment.objects.get(id=partial_id)
+        old_amount = partial_payment.amount
+
+        # تحقق من صحة المبلغ
+        try:
+            amount = float(request.POST.get("amount"))
+            if amount <= 0:
+                return JsonResponse({"success": False, "error": "Amount must be greater than 0"})
+        except ValueError:
+            return JsonResponse({"success": False, "error": "Invalid amount"})
+
+        # تحقق من صحة التاريخ
+        try:
+            date_str = request.POST.get("date")
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+            date_obj = make_aware(datetime.combine(date_obj, datetime.min.time()))
+        except ValueError:
+            return JsonResponse({"success": False, "error": "Invalid date format"})
+
+        # تحديث القيم
+        partial_payment.amount = amount
+        partial_payment.date_payment = date_obj
+        partial_payment.save()
+
+        # تحديث حالة الدفع
+        customer_service = partial_payment.customer_service
+        customer_service.update_payment_status()
+
+        return JsonResponse({
+            "success": True,
+            "amount": partial_payment.amount,
+            "date": partial_payment.date_payment.strftime("%d/%m/%Y"),  # تنسيق التاريخ
+            "old_amount": old_amount,
+        })
+    except PartialPayment.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Partial payment not found"})
+
 
 def ajouter_contrat(request, contrat_id=None):
     """
@@ -1279,7 +1390,6 @@ def ajouter_contrat(request, contrat_id=None):
         nom_pere = request.POST.get("nom_pere")
         nom_mere = request.POST.get("nom_mere")
         adresse = request.POST.get("adresse")
-        conditions = request.POST.get("conditions")
         date_contrat = request.POST.get("date_contrat")
 
         if contrat:  # حالة تعديل
@@ -1314,5 +1424,5 @@ def liste_contrats(request):
     """
     View لعرض قائمة العقود.
     """
-    contrats = ContratPersonnePhysique.objects.all().order_by("-cree_le")
+    contrats = ContratPersonnePhysique.objects.all()
     return render(request, "accounting/liste_contrats.html", {"contrats": contrats})

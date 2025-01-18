@@ -255,76 +255,144 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(ContratPersonnePhysique)
 class ContratPersonnePhysiqueAdmin(admin.ModelAdmin):
-    list_display = ("nom_prenom", "date_contrat", "loyer_mensuel_contrat", "date_debut", "date_fin")
-    search_fields = ("nom_prenom", "date_contrat", "adresse")
+    list_display = (
+        "nom_prenom", 
+        "date_contrat", 
+        "loyer_mensuel_contrat", 
+        "date_debut", 
+        "date_fin", 
+        "duree_contrat"
+    )
+    search_fields = ("nom_prenom", "adresse", "date_contrat")
     list_filter = ("date_debut", "date_fin")
+    readonly_fields = ("duree_contrat",)
+
 
 @admin.register(ContratPersonneMorale)
 class ContratPersonneMoraleAdmin(admin.ModelAdmin):
-    list_display = ("registre_commerce", "nom_representant", "date_contrat", "loyer_mensuel_contrat", "date_debut", "date_fin")
-    search_fields = ("nom_representant", "registre_commerce", "customer_file__raison_sociale")
+    list_display = (
+        "nom_soc", 
+        "registre_commerce", 
+        "nom_representant", 
+        "date_contrat", 
+        "loyer_mensuel_contrat", 
+        "date_debut", 
+        "date_fin", 
+        "duree_contrat"
+    )
+    search_fields = (
+        "nom_soc", 
+        "nom_representant", 
+        "registre_commerce", 
+        "customer_file__raison_sociale"
+    )
     list_filter = ("date_contrat", "date_debut", "date_fin")
-    readonly_fields = ("cree_le", "mis_a_jour_le")  # Ensure these fields exist in the model
-
-
-
+    readonly_fields = ("duree_contrat",)
 
 class ContratPersonnePhysiqueInline(admin.TabularInline):
     model = ContratPersonnePhysique
-    extra = 1  # عدد النماذج الفارغة التي تظهر عند إضافة جديد
-    fields = ('nom_prenom', 'loyer_mensuel_contrat', 'loyer_mensuel_plateforme', 'date_debut', 'date_fin', 'date_contrat')
+    extra = 1
+    fields = (
+        "nom_prenom", 
+        "loyer_mensuel_contrat", 
+        "loyer_mensuel_plateforme", 
+        "date_debut", 
+        "date_fin", 
+        "date_contrat", 
+        "duree_contrat"
+    )
+    readonly_fields = ("duree_contrat",)
 
 class ContratPersonneMoraleInline(admin.TabularInline):
     model = ContratPersonneMorale
-    extra = 1  # عدد النماذج الفارغة التي تظهر عند إضافة جديد
-    fields = ('registre_commerce', 'nom_representant', 'loyer_mensuel_contrat', 'loyer_mensuel_plateforme', 'date_debut', 'date_fin', 'date_contrat')
+    extra = 1
+    fields = (
+        "nom_soc", 
+        "nom_representant", 
+        "loyer_mensuel_contrat", 
+        "loyer_mensuel_plateforme", 
+        "date_debut", 
+        "date_fin", 
+        "date_contrat", 
+        "duree_contrat"
+    )
+    readonly_fields = ("duree_contrat",)
 
 @admin.register(CustomerFile)
 class CustomerFileAdmin(admin.ModelAdmin):
     list_display = (
-        'raison_sociale', 
-        'forme_juridique', 
-        'domiciliation', 
-        'tenue_comptabilite', 
-        'date_creation', 
-        'ice', 
-        'identifiant_fiscal', 
-        'cnss', 
-        'registre_commerce', 
-        'cabinet_comptable', 
-        'date_reception_dossier', 
-        'user_create', 
-        'user_edit', 
-        'is_archived'
+        "raison_sociale", 
+        "forme_juridique", 
+        "domiciliation", 
+        "tenue_comptabilite", 
+        "date_creation", 
+        "ice", 
+        "identifiant_fiscal", 
+        "cnss", 
+        "registre_commerce", 
+        "cabinet_comptable", 
+        "date_reception_dossier", 
+        "user_create", 
+        "user_edit", 
+        "is_archived"
     )
-    list_filter = ('forme_juridique', 'ville', 'is_archived', 'tenue_comptabilite')  # إضافة الفلاتر
-    search_fields = ('raison_sociale', 'ice', 'identifiant_fiscal', 'registre_commerce')  # الحقول القابلة للبحث
-    inlines = [FiscalRegimeInline, ContactInline, AssocieInline, CustomerServiceInline, EDocumentInline, ContratPersonnePhysiqueInline, ContratPersonneMoraleInline]  # إضافة Inlines الخاصة بالعقود
+    list_filter = ("forme_juridique", "ville", "is_archived", "tenue_comptabilite")
+    search_fields = ("raison_sociale", "ice", "identifiant_fiscal", "registre_commerce")
+    inlines = [
+        FiscalRegimeInline, 
+        ContactInline, 
+        AssocieInline, 
+        CustomerServiceInline, 
+        EDocumentInline, 
+        ContratPersonnePhysiqueInline, 
+        ContratPersonneMoraleInline
+    ]
 
     fieldsets = (
-        ('Informations Générales', {
-            'fields': ('raison_sociale', 'activite', 'ville', 'adresse', 'forme_juridique', 'date_creation')
-        }),
-        ('Informations Juridiques et Fiscales', {
-            'fields': (
-                'ice', 
-                'identifiant_fiscal', 
-                'cnss', 
-                'registre_commerce'
+        ("Informations Générales", {
+            "fields": (
+                "raison_sociale", 
+                "activite", 
+                "ville", 
+                "adresse", 
+                "forme_juridique", 
+                "date_creation"
             )
         }),
-        ('Services et Comptabilité', {
-            'fields': ('domiciliation', 'tenue_comptabilite', 'cabinet_comptable', 'date_reception_dossier')
+        ("Informations Juridiques et Fiscales", {
+            "fields": (
+                "ice", 
+                "identifiant_fiscal", 
+                "cnss", 
+                "registre_commerce"
+            )
         }),
-        ('Informations Système', {
-            'fields': ('user_create', 'user_edit', 'is_archived')
+        ("Services et Comptabilité", {
+            "fields": (
+                "domiciliation", 
+                "tenue_comptabilite", 
+                "cabinet_comptable", 
+                "date_reception_dossier"
+            )
+        }),
+        ("Informations Système", {
+            "fields": (
+                "user_create", 
+                "user_edit", 
+                "is_archived"
+            )
         }),
     )
 
-    exclude = ('date_create', 'date_edit')
+    exclude = ("date_create", "date_edit")
 
     def save_model(self, request, obj, form, change):
+        """
+        Override pour ajouter des informations sur l'utilisateur
+        qui crée ou modifie un objet.
+        """
         if not obj.pk:  # Lors de la création
             obj.user_create = request.user
         obj.user_edit = request.user  # Dernier utilisateur ayant modifié l'objet
         super().save_model(request, obj, form, change)
+
