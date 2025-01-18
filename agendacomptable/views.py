@@ -1186,6 +1186,8 @@ def generate_payments_for_month(month, year):
     return payments_created
 
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
 
 def preparation_mois(request):
     if request.method == "POST":
@@ -1262,6 +1264,9 @@ def preparation_mois(request):
         'payments': payments,  # Pass payments with total_partial included
     })
 
+
+
+@csrf_exempt  # إضافة هذا الديكور إذا كنت لا تستخدم CSRF token
 def partial_payment(request):
     if request.method == "POST":
         payment_id = request.POST.get("payment_id")
@@ -1285,7 +1290,7 @@ def partial_payment(request):
         # تحقق من صحة التاريخ
         try:
             date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-            date_obj = make_aware(datetime.combine(date_obj, datetime.min.time()))
+            date_obj = timezone.make_aware(datetime.combine(date_obj, datetime.min.time()))
         except ValueError:
             return JsonResponse({"error": "Invalid date format"}, status=400)
 
@@ -1301,11 +1306,14 @@ def partial_payment(request):
 
         # إرجاع الاستجابة
         return JsonResponse({
+            "success": True,
             "amount": amount,
             "date": date_str,
+            "partial_id": partial_payment.id,  # إرجاع ID الدفع الجزئي
         })
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
 
 @require_POST
 def delete_partial_payment(request, partial_id):
