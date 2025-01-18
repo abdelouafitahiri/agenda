@@ -1187,6 +1187,7 @@ def generate_payments_for_month(month, year):
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 
 def preparation_mois(request):
